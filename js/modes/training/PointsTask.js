@@ -5,10 +5,11 @@
 import { pointsTask } from './tasks.js';
 import { mathLine } from '../GraphMode.js';
 import { parseConstant, toText } from '../../core/FunctionParser.js';
-import { formatNumber, formatPoint, formatValue, plural } from '../../core/format.js';
+import { formatNumber, formatPoint, formatValue } from '../../core/format.js';
 import { h, clear, nextId } from '../../ui/dom.js';
 import { icon } from '../../ui/icons.js';
 import { hint } from '../../ui/Hint.js';
+import { tr, trp } from '../../i18n/i18n.js';
 
 const SNAP = 0.5;
 const MIN_POINTS = 5;
@@ -77,20 +78,20 @@ export class PointsTask {
         h('input', { id, type: 'checkbox', role: 'switch', checked: this[key], onChange: (e) => { this[key] = e.target.checked; this.app.renderer.requestRender(); } }),
         h('span', { class: 'switch-track', 'aria-hidden': 'true' }), h('span', {}, label));
     };
-    this.deleteBtn = h('button', { type: 'button', class: 'btn btn-sm', disabled: true, onClick: () => this.removeSelected() }, icon('trash', 14), 'Видалити точку');
+    this.deleteBtn = h('button', { type: 'button', class: 'btn btn-sm', disabled: true, onClick: () => this.removeSelected() }, icon('trash', 14), tr('pt.deletePoint'));
     left.append(
       h('div', { class: 'task-card' },
-        h('span', { class: 'task-label' }, 'Завдання'),
-        h('p', {}, 'Побудуй графік функції'),
+        h('span', { class: 'task-label' }, tr('common.task')),
+        h('p', {}, tr('pt.build')),
         h('div', { html: mathLine(this.task.parsed.html) })),
-      h('p', { class: 'small muted' }, 'Клацни по площині — з’явиться точка. Точки можна перетягувати; вибрану точку видаляє клавіша Delete.'),
+      h('p', { class: 'small muted' }, tr('pt.howTo')),
       h('div', { class: 'tool-row' },
         this.deleteBtn,
-        h('button', { type: 'button', class: 'btn btn-sm', onClick: () => this.clearAll() }, icon('reset', 14), 'Очистити')),
-      sw(`Прив’язка до сітки (крок ${formatNumber(SNAP)})`, 'snap'),
-      sw('Сполучити точки плавною кривою', 'showCurve'),
+        h('button', { type: 'button', class: 'btn btn-sm', onClick: () => this.clearAll() }, icon('reset', 14), tr('pt.clear'))),
+      sw(tr('pt.snap', { step: formatNumber(SNAP) }), 'snap'),
+      sw(tr('pt.curve'), 'showCurve'),
       this.renderTable(),
-      hint('train-points', 'Підстав кілька значень x у формулу, порахуй y і познач точки (x; y). Не забудь «особливі» точки — наприклад, вершину параболи.'),
+      hint('train-points', tr('pt.hint')),
     );
     this.side = h('div', { class: 'section' });
     right.append(this.side);
@@ -100,13 +101,13 @@ export class PointsTask {
   renderTable() {
     const rows = TABLE_XS.map((x) => {
       const xIn = h('input', { type: 'text', inputmode: 'decimal', value: formatNumber(x), 'aria-label': 'x' });
-      const yIn = h('input', { type: 'text', inputmode: 'decimal', placeholder: '?', 'aria-label': `y при x = ${formatNumber(x)}` });
-      xIn.addEventListener('input', () => yIn.setAttribute('aria-label', `y при x = ${xIn.value}`));
+      const yIn = h('input', { type: 'text', inputmode: 'decimal', placeholder: '?', 'aria-label': tr('pt.yAt', { x: formatNumber(x) }) });
+      xIn.addEventListener('input', () => yIn.setAttribute('aria-label', tr('pt.yAt', { x: xIn.value })));
       const helpBtn = h('button', {
         type: 'button',
         class: 'icon-btn is-quiet is-small',
-        'aria-label': 'Підказати значення y',
-        title: 'Підказати',
+        'aria-label': tr('pt.suggest'),
+        title: tr('pt.suggestShort'),
         onClick: () => {
           const xv = parseConstant(xIn.value);
           if (!xv.ok) { xIn.setAttribute('aria-invalid', 'true'); return; }
@@ -121,15 +122,15 @@ export class PointsTask {
     this.tableRows = rows;
     this.tableMsg = h('p', { class: 'small muted', 'aria-live': 'polite' });
     return h('details', { class: 'disclosure', open: true },
-      h('summary', {}, h('span', {}, 'Таблиця значень'), icon('chevronDown', 16)),
+      h('summary', {}, h('span', {}, tr('common.valueTable')), icon('chevronDown', 16)),
       h('div', { class: 'disclosure-body section' },
-        h('p', { class: 'small muted' }, 'Порахуй y для кожного x і нанеси точки. Лампочка підкаже значення.'),
+        h('p', { class: 'small muted' }, tr('pt.tableHelp')),
         h('div', { class: 'table-wrap' },
           h('table', { class: 'value-table' },
-            h('thead', {}, h('tr', {}, h('th', { scope: 'col' }, 'x'), h('th', { scope: 'col' }, 'y'), h('th', { scope: 'col' }, h('span', { class: 'sr-only' }, 'Підказка')))),
+            h('thead', {}, h('tr', {}, h('th', { scope: 'col' }, 'x'), h('th', { scope: 'col' }, 'y'), h('th', { scope: 'col' }, h('span', { class: 'sr-only' }, tr('common.hint'))))),
             h('tbody', {}, rows.map((r) => r.el)))),
         this.tableMsg,
-        h('button', { type: 'button', class: 'btn btn-block', onClick: () => this.plotFromTable() }, icon('dot', 16), 'Нанести точки з таблиці')));
+        h('button', { type: 'button', class: 'btn btn-block', onClick: () => this.plotFromTable() }, icon('dot', 16), tr('pt.plot'))));
   }
 
   plotFromTable() {
@@ -146,8 +147,8 @@ export class PointsTask {
       added++;
     }
     this.tableMsg.textContent = bad
-      ? `У ${bad} ${plural(bad, 'рядку', 'рядках', 'рядках')} не число — виправ, будь ласка.`
-      : added ? `Нанесено точок: ${added}.` : 'Заповни хоча б одну клітинку y.';
+      ? tr('pt.badRows', { n: bad, rows: trp('pl.rowsIn', bad) })
+      : added ? tr('pt.plotted', { n: added }) : tr('pt.fillOne');
     this.changed();
   }
 
@@ -158,15 +159,15 @@ export class PointsTask {
     const ready = distinct >= MIN_POINTS;
     this.side.append(
       h('div', { class: 'section-head' },
-        h('h2', { class: 'section-title' }, 'Перевірка'),
-        h('span', { class: 'small muted' }, `розв’язано: ${this.solved} з ${this.attempts}`)),
-      h('p', { class: 'small' }, `Точок на площині: ${n}. Потрібно хоча б ${MIN_POINTS} з різними x.`),
-      h('div', { class: 'progress', role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': String(MIN_POINTS), 'aria-valuenow': String(Math.min(distinct, MIN_POINTS)), 'aria-label': 'Готовність до перевірки' },
+        h('h2', { class: 'section-title' }, tr('common.checking')),
+        h('span', { class: 'small muted' }, tr('common.solved', { solved: this.solved, total: this.attempts }))),
+      h('p', { class: 'small' }, tr('pt.count', { n, min: MIN_POINTS })),
+      h('div', { class: 'progress', role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': String(MIN_POINTS), 'aria-valuenow': String(Math.min(distinct, MIN_POINTS)), 'aria-label': tr('pt.ready') },
         h('span', { style: { width: `${Math.min(100, (distinct / MIN_POINTS) * 100)}%` } })),
-      h('button', { type: 'button', class: 'btn btn-primary btn-block', disabled: !ready || Boolean(this.result), onClick: () => this.check() }, icon('check', 16), 'Перевірити'),
+      h('button', { type: 'button', class: 'btn btn-primary btn-block', disabled: !ready || Boolean(this.result), onClick: () => this.check() }, icon('check', 16), tr('common.check')),
     );
     if (this.result) this.side.append(...this.renderResult());
-    this.side.append(h('button', { type: 'button', class: 'btn btn-block', onClick: () => this.newTask() }, icon('shuffle', 16), 'Нове завдання'));
+    this.side.append(h('button', { type: 'button', class: 'btn btn-block', onClick: () => this.newTask() }, icon('shuffle', 16), tr('common.newTask')));
     if (this.deleteBtn) this.deleteBtn.disabled = !this.selected;
   }
 
@@ -202,25 +203,25 @@ export class PointsTask {
     const wrong = checked.filter((p) => !p.ok && !p.dup);
     const items = [];
     items.push(h('div', { class: `verdict ${success ? 'is-correct' : 'is-wrong'}`, role: 'status' },
-      h('div', { class: 'verdict-title' }, icon(success ? 'check' : 'x', 22), success ? 'Графік побудовано правильно!' : `Правильно ${good} з ${checked.length}`),
+      h('div', { class: 'verdict-title' }, icon(success ? 'check' : 'x', 22), success ? tr('pt.success') : tr('pt.score', { good, total: checked.length })),
       h('p', {}, success
-        ? 'Усі точки лежать на графіку функції. Зелена лінія — правильний графік.'
-        : 'Зелена лінія — правильний графік. Червоні точки не лежать на ньому: пунктир показує, де має бути точка.')));
+        ? tr('pt.allOk')
+        : tr('pt.someBad'))));
     if (dupX.length) {
-      items.push(h('p', { class: 'small' }, `У кількох точок однаковий x = ${dupX.map((x) => formatNumber(x)).join(', ')}, але різні y. У функції кожному x відповідає одне значення — залиш одну точку.`));
+      items.push(h('p', { class: 'small' }, tr('pt.dup', { xs: dupX.map((x) => formatNumber(x)).join(', ') })));
     }
     if (wrong.length) {
       items.push(h('ul', { class: 'point-list' }, wrong.slice(0, 8).map((p) => {
         const xs = formatNumber(p.x);
         const why = Number.isFinite(p.fx)
           ? `f(${xs}) = ${toText(ast, xs)} = ${formatValue(p.fx)}`
-          : `при x = ${xs} функція не визначена`;
+          : tr('common.undefinedAt', { x: xs });
         return h('li', {}, h('span', { class: 'bad', 'aria-hidden': 'true' }, '✗'), h('span', {}, `${formatPoint(p.x, p.y)} — ${why}`));
       })));
     }
     const tip = this.coverageTip(checked);
     if (tip) items.push(h('p', { class: 'small muted' }, tip));
-    if (!success) items.push(h('button', { type: 'button', class: 'btn btn-block', onClick: () => { this.result = null; this.renderSide(); this.app.renderer.requestRender(); } }, icon('pencil', 15), 'Виправити точки'));
+    if (!success) items.push(h('button', { type: 'button', class: 'btn btn-block', onClick: () => { this.result = null; this.renderSide(); this.app.renderer.requestRender(); } }, icon('pencil', 15), tr('pt.fix')));
     return items;
   }
 
@@ -228,11 +229,11 @@ export class PointsTask {
     const { family, params } = this.task;
     if (family === 'parabola' || family === 'abs') {
       const has = checked.some((p) => p.ok && Math.abs(p.x - params.h) < 1e-9);
-      if (!has) return `Порада: познач вершину ${formatPoint(params.h, params.k)} — від неї зручно будувати ${family === 'abs' ? '«галочку»' : 'параболу'}.`;
+      if (!has) return tr('pt.tipVertex', { point: formatPoint(params.h, params.k), what: tr(family === 'abs' ? 'pt.what.abs' : 'pt.what.parabola') });
     }
     if (family === 'linear') {
       const has = checked.some((p) => p.ok && p.x === 0);
-      if (!has) return `Порада: точка перетину з віссю Oy — ${formatPoint(0, params.b)} (це b у формулі y = kx + b).`;
+      if (!has) return tr('pt.tipIntercept', { point: formatPoint(0, params.b) });
     }
     return null;
   }
@@ -334,10 +335,10 @@ export class PointsTask {
   }
 
   changed() {
-    this.app.setBadge(`<span class="muted">Побудуй</span>${mathLine(this.task.parsed.html)}`);
+    this.app.setBadge(`<span class="muted">${tr('pt.badge')}</span>${mathLine(this.task.parsed.html)}`);
     this.renderSide();
     this.app.renderer.requestRender();
-    this.app.setPlaneDescription(`Завдання: побудувати графік y = ${this.task.parsed.text}. Поставлено точок: ${this.points.length}.`);
+    this.app.setPlaneDescription(tr('pt.desc', { f: this.task.parsed.text, n: this.points.length }));
   }
 
   draw(r) {

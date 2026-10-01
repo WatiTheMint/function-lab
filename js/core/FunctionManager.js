@@ -5,9 +5,10 @@ import { EventEmitter } from './EventEmitter.js';
 import { parseFunction } from './FunctionParser.js';
 import { analyzeFunction } from './FunctionAnalyzer.js';
 import { storage } from '../ui/dom.js';
+import { tr } from '../i18n/i18n.js';
 
 export const MAX_FUNCTIONS = 8;
-export const COLOR_NAMES = ['синій', 'червоний', 'зелений', 'фіолетовий', 'помаранчевий', 'бірюзовий', 'рожевий', 'оливковий'];
+export const colorName = (i) => tr('color.names')[i];
 const KEY = 'fl.functions';
 const DEFAULTS = ['x^2', '2x + 1'];
 
@@ -48,6 +49,11 @@ export class FunctionManager extends EventEmitter {
   }
 
   /** Анализ считается лениво и кэшируется. */
+  /** Тексти аналізу залежать від мови — після її зміни перераховуємо. */
+  invalidateAnalysis() {
+    for (const item of this.items) item._analysis = null;
+  }
+
   analysis(item) {
     if (!item._analysis) item._analysis = analyzeFunction(item.parsed);
     return item._analysis;
@@ -56,7 +62,7 @@ export class FunctionManager extends EventEmitter {
   /** @returns {{ok:true,item}|{ok:false,error}} */
   add(source, opts = {}) {
     if (this.items.length >= MAX_FUNCTIONS) {
-      return { ok: false, error: { message: `Можна побудувати не більше ${MAX_FUNCTIONS} функцій одночасно. Видаліть одну зі списку.`, start: 0, end: 0 } };
+      return { ok: false, error: { message: tr('fm.limit', { max: MAX_FUNCTIONS }), start: 0, end: 0 } };
     }
     const parsed = parseFunction(source);
     if (!parsed.ok) return parsed;
@@ -70,7 +76,7 @@ export class FunctionManager extends EventEmitter {
 
   update(id, source) {
     const item = this.get(id);
-    if (!item) return { ok: false, error: { message: 'Функцію не знайдено', start: 0, end: 0 } };
+    if (!item) return { ok: false, error: { message: tr('fm.notFound'), start: 0, end: 0 } };
     const parsed = parseFunction(source);
     if (!parsed.ok) return parsed;
     item.parsed = parsed;

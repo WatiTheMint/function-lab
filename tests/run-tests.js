@@ -9,6 +9,9 @@ import { compareFunctions } from '../js/core/numeric.js';
 import { ALL_KINDS, verticalTest } from '../js/modes/testShapes.js';
 import { choiceTask, pointsTask, formulaTask } from '../js/modes/training/tasks.js';
 import { tableXs } from '../js/ui/ValueTable.js';
+import { setLang, tr, trp } from '../js/i18n/i18n.js';
+import uk from '../js/i18n/uk.js';
+import ru from '../js/i18n/ru.js';
 
 let passed = 0;
 const failures = [];
@@ -242,6 +245,30 @@ test('сравнение формул: разная запись — одна ф
   ok(compareFunctions(f('-x^2 + 4').evaluate, f('4 - x*x').evaluate).equal, '−x² + 4 = 4 − x·x');
   ok(!compareFunctions(f('sqrt(x^2)').evaluate, f('x').evaluate).equal, '√(x²) ≠ x');
   ok(compareFunctions(f('sqrt(x^2)').evaluate, f('|x|').evaluate).equal, '√(x²) = |x|');
+});
+
+// ─────────────── Мови ───────────────
+
+test('словники uk і ru мають однакові ключі та підстановки', () => {
+  const keys = (o) => Object.keys(o).sort().join('|');
+  eq(keys(uk), keys(ru), 'набір ключів:');
+  const ph = (v) => (Array.isArray(v) ? `[${v.length}]` : (String(v).match(/\{\w+\}/g) ?? []).sort().join(','));
+  for (const k of Object.keys(uk)) eq(ph(uk[k]), ph(ru[k]), `ключ ${k}:`);
+});
+
+test('перемикання мови змінює тексти аналізу й помилок', () => {
+  setLang('ru');
+  try {
+    eq(section(analyzeFunction(f('1/x')), 'asym').text, 'вертикальная: x = 0; горизонтальная: y = 0');
+    eq(section(analyzeFunction(f('x^2')), 'parity').text, 'чётная: f(−x) = f(x)');
+    ok(/Не хватает закрывающей скобки/.test(parseFunction('(x+1').error.message), 'помилка російською');
+    eq(formatValue(NaN), 'не определено');
+    eq(trp('pl.points', 5), 'точек');
+  } finally {
+    setLang('uk');
+  }
+  eq(tr('a.none'), 'немає');
+  eq(trp('pl.points', 5), 'точок');
 });
 
 console.log(`\nFunction Lab — тести ядра: ${passed} пройдено, ${failures.length} з помилками\n`);

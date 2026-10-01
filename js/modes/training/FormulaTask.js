@@ -9,6 +9,7 @@ import { formatNumber, formatPoint, formatValue } from '../../core/format.js';
 import { h, clear } from '../../ui/dom.js';
 import { icon } from '../../ui/icons.js';
 import { hint } from '../../ui/Hint.js';
+import { tr } from '../../i18n/i18n.js';
 
 const FORMS = {
   linear: 'y = kx + b',
@@ -53,36 +54,37 @@ export class FormulaTask {
     clear(left);
     clear(right);
     this.input = new FormulaInput({
-      label: 'Твоя формула',
-      submitLabel: 'Перевірити',
+      label: tr('fo.yours'),
+      value: this.user?.source ?? '',
+      submitLabel: tr('common.check'),
       keys: true,
       onSubmit: (parsed) => this.check(parsed),
     });
     this.hintBox = h('div', { class: 'section', 'aria-live': 'polite' });
     left.append(
       h('div', { class: 'task-card' },
-        h('span', { class: 'task-label' }, 'Завдання'),
-        h('p', {}, 'Яку функцію зображено на площині? Запиши її формулу.')),
+        h('span', { class: 'task-label' }, tr('common.task')),
+        h('p', {}, tr('fo.question'))),
       this.input.el,
       h('div', { class: 'tool-row' },
-        h('button', { type: 'button', class: 'btn btn-sm', onClick: () => this.moreHints() }, icon('bulb', 14), 'Підказка'),
-        h('button', { type: 'button', class: 'btn btn-sm btn-ghost', onClick: () => this.reveal() }, 'Показати відповідь')),
+        h('button', { type: 'button', class: 'btn btn-sm', onClick: () => this.moreHints() }, icon('bulb', 14), tr('common.hint')),
+        h('button', { type: 'button', class: 'btn btn-sm btn-ghost', onClick: () => this.reveal() }, tr('fo.reveal'))),
       this.hintBox,
-      hint('train-formula', 'Знайди на графіку «опорні» точки: перетин з осями, вершину. Підстав їхні координати в загальний вигляд формули.'),
+      hint('train-formula', tr('fo.hint')),
     );
     this.side = h('div', { class: 'section' });
     right.append(this.side);
     this.renderHints();
     this.renderSide();
-    this.app.setBadge('<span class="muted">Яку функцію зображено?</span>');
-    this.app.setPlaneDescription('Завдання: за зображеним графіком записати формулу функції.');
+    this.app.setBadge(`<span class="muted">${tr('fo.badge')}</span>`);
+    this.app.setPlaneDescription(tr('fo.desc'));
   }
 
   keyPoints() {
     const { family, params, parsed } = this.task;
     const pts = [];
     const f = parsed.evaluate;
-    if (['parabola', 'abs', 'cubic', 'sqrt'].includes(family)) pts.push({ x: params.h, y: params.k, label: family === 'sqrt' ? 'початок' : family === 'cubic' ? 'центр' : 'вершина' });
+    if (['parabola', 'abs', 'cubic', 'sqrt'].includes(family)) pts.push({ x: params.h, y: params.k, label: family });
     const y0 = f(0);
     if (Number.isFinite(y0) && !pts.some((p) => p.x === 0)) pts.push({ x: 0, y: y0, label: 'Oy' });
     for (const x of [1, -1, 2]) {
@@ -107,13 +109,13 @@ export class FormulaTask {
   renderHints() {
     clear(this.hintBox);
     if (this.hintLevel >= 1) {
-      this.hintBox.append(h('p', { class: 'small' }, `Позначені точки: ${this.keyPoints().map((p) => formatPoint(p.x, p.y)).join(', ')}.`));
+      this.hintBox.append(h('p', { class: 'small' }, tr('fo.marked', { pts: this.keyPoints().map((p) => formatPoint(p.x, p.y)).join(', ') })));
     }
     if (this.hintLevel >= 2) {
-      this.hintBox.append(h('p', { class: 'small' }, `Це ${this.task.familyName}. Загальний вигляд: ${FORMS[this.task.family]}.`));
+      this.hintBox.append(h('p', { class: 'small' }, tr('fo.family', { family: tr(`family.${this.task.family}`), form: FORMS[this.task.family] })));
     }
     if (this.revealed) {
-      this.hintBox.append(h('p', { class: 'small', html: `Відповідь: ${mathLine(this.task.parsed.html)}` }));
+      this.hintBox.append(h('p', { class: 'small', html: tr('fo.answer', { f: mathLine(this.task.parsed.html) }) }));
     }
   }
 
@@ -135,30 +137,30 @@ export class FormulaTask {
   renderSide() {
     clear(this.side);
     this.side.append(h('div', { class: 'section-head' },
-      h('h2', { class: 'section-title' }, 'Перевірка'),
-      h('span', { class: 'small muted' }, `розв’язано: ${this.solved} з ${this.attempts}`)));
+      h('h2', { class: 'section-title' }, tr('common.checking')),
+      h('span', { class: 'small muted' }, tr('common.solved', { solved: this.solved, total: this.attempts }))));
     if (!this.result) {
-      this.side.append(h('p', { class: 'small' }, 'Введи формулу ліворуч і натисни «Перевірити». Твій графік з’явиться на площині поруч із заданим.'));
+      this.side.append(h('p', { class: 'small' }, tr('fo.enter')));
       return;
     }
     const r = this.result;
     if (r.equal) {
       this.side.append(h('div', { class: 'verdict is-correct', role: 'status' },
-        h('div', { class: 'verdict-title' }, icon('check', 22), 'Збігається!'),
-        h('p', { html: `Твоя формула ${mathLine(this.user.html)} задає ту саму функцію: графіки збіглися в усіх перевірених точках відрізка [−10; 10].` }),
-        this.user.text !== this.task.parsed.text ? h('p', { class: 'small', html: `У завданні її було записано як ${mathLine(this.task.parsed.html)}.` }) : null));
+        h('div', { class: 'verdict-title' }, icon('check', 22), tr('fo.match')),
+        h('p', { html: tr('fo.matchText', { f: mathLine(this.user.html) }) }),
+        this.user.text !== this.task.parsed.text ? h('p', { class: 'small', html: tr('fo.wasWritten', { f: mathLine(this.task.parsed.html) }) }) : null));
     } else {
       const xs = formatNumber(r.x, { decimals: 2 });
       let why;
-      if (Number.isFinite(r.fx) && Number.isFinite(r.gx)) why = `При x = ${xs} на графіку y = ${formatValue(r.fx)}, а твоя формула дає f(${xs}) = ${formatValue(r.gx)}.`;
-      else if (Number.isFinite(r.fx)) why = `При x = ${xs} графік існує (y = ${formatValue(r.fx)}), а твоя формула там не визначена.`;
-      else why = `При x = ${xs} графіка немає, а твоя формула дає значення ${formatValue(r.gx)}.`;
+      if (Number.isFinite(r.fx) && Number.isFinite(r.gx)) why = tr('fo.diffBoth', { x: xs, fy: formatValue(r.fx), gy: formatValue(r.gx) });
+      else if (Number.isFinite(r.fx)) why = tr('fo.diffUserUndef', { x: xs, fy: formatValue(r.fx) });
+      else why = tr('fo.diffTargetUndef', { x: xs, gy: formatValue(r.gx) });
       this.side.append(h('div', { class: 'verdict is-wrong', role: 'status' },
-        h('div', { class: 'verdict-title' }, icon('x', 22), 'Поки не збігається'),
+        h('div', { class: 'verdict-title' }, icon('x', 22), tr('fo.noMatch')),
         h('p', {}, why),
-        h('p', { class: 'small' }, 'Синій — заданий графік, червоний пунктир — графік твоєї формули. Виправ формулу й перевір ще раз.')));
+        h('p', { class: 'small' }, tr('fo.legend'))));
     }
-    this.side.append(h('button', { type: 'button', class: `btn btn-block ${r.equal ? 'btn-primary' : ''}`, onClick: () => this.newTask() }, 'Нове завдання', icon('arrowRight', 16)));
+    this.side.append(h('button', { type: 'button', class: `btn btn-block ${r.equal ? 'btn-primary' : ''}`, onClick: () => this.newTask() }, tr('common.newTask'), icon('arrowRight', 16)));
   }
 
   draw(r) {

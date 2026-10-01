@@ -1,4 +1,4 @@
-// App — собирает модули вместе: тема, плоскость, ввод, режимы, вкладки, справка.
+// App — собирает модули вместе: тема, язык, плоскость, ввод, режимы, вкладки, справка.
 
 import { ThemeManager } from '../core/ThemeManager.js';
 import { CoordinateSystem } from '../core/CoordinateSystem.js';
@@ -11,6 +11,7 @@ import { hydrateIcons, icon } from '../ui/icons.js';
 import { resetHints } from '../ui/Hint.js';
 import { showToast } from '../ui/Toast.js';
 import { createModes } from '../modes/index.js';
+import { applyStatic, getLang, LANGS, onLangChange, setLang, tr } from '../i18n/i18n.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -44,7 +45,9 @@ export class App {
     this.tabs = [...document.querySelectorAll('.modes [role="tab"]')];
 
     hydrateIcons();
+    this.applyLanguage();
     this.wireHeader();
+    this.wireLanguage();
     this.wirePlaneControls();
     this.wireHelp();
     this.theme.on('change', () => this.onTheme());
@@ -91,6 +94,19 @@ export class App {
     this.renderer.requestRender();
   }
 
+  /** Перестроить панели текущего режима, сохранив его состояние и вид плоскости. */
+  remount() {
+    if (!this.mode) return;
+    const view = this.cs.view;
+    const touched = this.viewTouched;
+    this.mode.unmount();
+    for (const el of [this.left, this.right, this.footer, this.overlay]) clear(el);
+    this.mode.mount();
+    this.cs.setView(view);
+    this.viewTouched = touched;
+    this.renderer.requestRender();
+  }
+
   resetView(animate = true) {
     this.viewTouched = false;
     const v = this.mode.defaultView();
@@ -115,7 +131,7 @@ export class App {
 
   setPlaneDescription(text) {
     $('plane-desc').textContent = text;
-    this.canvas.setAttribute('aria-label', `Координатна площина. ${text}`);
+    this.canvas.setAttribute('aria-label', tr('plane.aria', { text }));
   }
 
   // ─────────────── Шапка ───────────────
@@ -145,8 +161,8 @@ export class App {
     const dark = this.theme.resolved === 'dark';
     const btn = $('theme-btn');
     btn.replaceChildren(icon(dark ? 'sun' : 'moon'));
-    btn.setAttribute('aria-label', dark ? 'Увімкнути світлу тему' : 'Увімкнути темну тему');
-    btn.title = dark ? 'Світла тема' : 'Темна тема';
+    btn.setAttribute('aria-label', dark ? tr('theme.toLight') : tr('theme.toDark'));
+    btn.title = dark ? tr('theme.light') : tr('theme.dark');
     // CSS-переменные обновляются синхронно после смены data-theme
     this.renderer.readColors();
     this.mode?.onTheme?.();
@@ -179,10 +195,48 @@ export class App {
     $('hints-reset').addEventListener('click', () => {
       resetHints();
       dialog.close();
-      const id = this.mode.id;
-      this.mode = null;
-      this.switchTo(id);
-      showToast('Підказки знову видно');
+      this.remount();
+      showToast(tr('hints.shown'));
     });
+  }
+
+  // ─────────────── Язык ───────────────
+
+  wireLanguage() {
+    const group = $('lang-switch');
+    for (const [code, info] of Object.entries(LANGS)) {
+      group.append(h('button', {
+        type: 'button',
+        lang: code,
+        'data-lang': code,
+        title: info.name,
+        'aria-label': info.name,
+        onClick: () => setLang(code),
+      }, info.label));
+    }
+    this.updateLangButtons();
+    onLangChange(() => {
+      this.applyLanguage();
+      this.functions.invalidateAnalysis();
+      this.onTheme();
+      this.remount();
+    });
+  }
+
+  updateLangButtons() {
+    for (const btn of $('lang-switch').querySelectorAll('[data-lang]')) {
+      btn.setAttribute('aria-pressed', String(btn.dataset.lang === getLang()));
+    }
+  }
+
+  /** Перевод статической разметки index.html и метаданных страницы. */
+  applyLanguage() {
+    const root = document.documentElement;
+    root.lang = getLang();
+    applyStatic(document);
+    document.title = tr('app.title');
+    document.querySelector('meta[name="description"]')?.setAttribute('content', tr('app.description'));
+    if ($('lang-switch').children.length) this.updateLangButtons();
+    root.classList.remove('i18n-pending');
   }
 }

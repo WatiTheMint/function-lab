@@ -8,6 +8,7 @@ import { h, clear, nextId, prefersReducedMotion } from '../ui/dom.js';
 import { icon } from '../ui/icons.js';
 import { explainAt, parseConstant, parseFunction, toText } from '../core/FunctionParser.js';
 import { formatNumber, formatPoint, formatValue, roundTo, tickDecimals } from '../core/format.js';
+import { tr } from '../i18n/i18n.js';
 
 const PRESETS = ['x^2 + 2', '2x - 1', 'sqrt(x)', '1/x', 'sin(x)', '|x| - 1', 'x^3 - 3x'];
 const STEPS = [0.01, 0.1, 0.5, 1];
@@ -59,10 +60,10 @@ export class InteractivePointMode extends BaseMode {
   mount() {
     const { left, right, overlay } = this.app;
     this.formula = new FormulaInput({
-      label: 'Функція',
+      label: tr('fx.function'),
       prefix: 'f(x) =',
       value: this.parsed.source,
-      submitLabel: 'Застосувати',
+      submitLabel: tr('fx.apply'),
       onSubmit: (parsed) => this.setFunction(parsed),
     });
 
@@ -72,7 +73,7 @@ export class InteractivePointMode extends BaseMode {
       return h('button', {
         type: 'button',
         class: 'chip',
-        'aria-label': `Взяти функцію f(x) = ${p.text}`,
+        'aria-label': tr('fx.take', { f: p.text }),
         onClick: () => {
           this.formula.setValue(src);
           this.setFunction(p);
@@ -129,35 +130,35 @@ export class InteractivePointMode extends BaseMode {
 
     left.append(h('div', { class: 'panel-body' },
       h('section', { class: 'section' },
-        h('h2', { class: 'section-title' }, 'Функція'),
+        h('h2', { class: 'section-title' }, tr('fx.function')),
         this.formula.el,
-        h('div', { class: 'chips', role: 'group', 'aria-label': 'Готові функції' },
+        h('div', { class: 'chips', role: 'group', 'aria-label': tr('fx.ready') },
           userFns.map((i) => chip(i.source)),
           PRESETS.filter((src) => !userFns.some((i) => i.source === src)).map(chip))),
       h('section', { class: 'section' },
-        h('h2', { class: 'section-title' }, 'Значення x'),
+        h('h2', { class: 'section-title' }, tr('fx.xValue')),
         h('div', { class: 'stepper' },
-          h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Зменшити x на крок', onClick: () => this.nudge(-1) }, icon('minus')),
+          h('button', { type: 'button', class: 'icon-btn', 'aria-label': tr('fx.dec'), onClick: () => this.nudge(-1) }, icon('minus')),
           this.xInput,
-          h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Збільшити x на крок', onClick: () => this.nudge(1) }, icon('plus'))),
-        h('label', { class: 'sr-only', for: xId }, 'Значення x'),
+          h('button', { type: 'button', class: 'icon-btn', 'aria-label': tr('fx.inc'), onClick: () => this.nudge(1) }, icon('plus'))),
+        h('label', { class: 'sr-only', for: xId }, tr('fx.xValue')),
         this.xError,
-        h('div', { class: 'field' }, h('label', { class: 'label', for: stepId }, 'Крок для кнопок, стрілок і прив’язки'), stepSelect),
-        h('p', { class: 'small muted' }, 'Можна вводити й вирази: −1,5 · pi/2 · √2.')),
+        h('div', { class: 'field' }, h('label', { class: 'label', for: stepId }, tr('fx.stepLabel')), stepSelect),
+        h('p', { class: 'small muted' }, tr('fx.exprHint'))),
       h('section', { class: 'section' },
-        h('h2', { class: 'section-title' }, 'Спостереження'),
-        sw('Прив’язка до кроку під час перетягування', 'snap'),
-        sw('Залишати слід із точок', 'trailOn', () => { if (!this.trailOn) this.trail = []; }),
-        sw('Показувати графік функції', 'showCurve'),
+        h('h2', { class: 'section-title' }, tr('fx.observe')),
+        sw(tr('fx.snap'), 'snap'),
+        sw(tr('fx.trail'), 'trailOn', () => { if (!this.trailOn) this.trail = []; }),
+        sw(tr('fx.showCurve'), 'showCurve'),
         this.sweepBtn,
-        h('button', { type: 'button', class: 'btn btn-ghost btn-block', onClick: () => { this.trail = []; this.redraw(); } }, icon('trash', 16), 'Очистити слід')),
-      hint('fx-basics', 'Щоб зрозуміти значення f(x), обери значення x і подивись, який y відповідає цій точці. Тягни синю ручку на осі x або рухай її стрілками ← →.'),
+        h('button', { type: 'button', class: 'btn btn-ghost btn-block', onClick: () => { this.trail = []; this.redraw(); } }, icon('trash', 16), tr('fx.clearTrail'))),
+      hint('fx-basics', tr('fx.hint')),
     ));
 
     this.readout = h('div', { class: 'readout', 'aria-live': 'polite' });
     right.append(h('div', { class: 'panel-body' },
-      h('section', { class: 'section' }, h('h2', { class: 'section-title' }, 'Результат'), this.readout),
-      hint('fx-trail', 'Увімкни «слід» і пробіжи по осі: з окремих точок (x; f(x)) складається графік. Графік функції — це множина всіх таких точок.'),
+      h('section', { class: 'section' }, h('h2', { class: 'section-title' }, tr('fx.result')), this.readout),
+      hint('fx-trail', tr('fx.trailHint')),
     ));
 
     // ручка прямой x = a: доступный с клавиатуры ползунок поверх плоскости
@@ -165,7 +166,7 @@ export class InteractivePointMode extends BaseMode {
       class: 'x-handle',
       role: 'slider',
       tabindex: '0',
-      'aria-label': 'Вертикальна пряма x = a',
+      'aria-label': tr('fx.handle'),
       'aria-orientation': 'horizontal',
       onKeydown: (e) => this.onHandleKey(e),
       onPointerdown: (e) => this.onHandlePointer(e),
@@ -197,7 +198,7 @@ export class InteractivePointMode extends BaseMode {
     const res = parseConstant(this.xInput.value);
     this.xInput.setAttribute('aria-invalid', res.ok ? 'false' : 'true');
     if (!res.ok) {
-      this.xError.textContent = `Не вдалося прочитати x: ${res.error.message}`;
+      this.xError.textContent = tr('fx.badX', { msg: res.error.message });
       return;
     }
     this.xError.textContent = '';
@@ -259,7 +260,7 @@ export class InteractivePointMode extends BaseMode {
 
   valueText() {
     const fa = this.parsed.evaluate(this.target);
-    return `x = ${formatValue(this.target)}, f(x) ${Number.isFinite(fa) ? `= ${formatValue(fa)}` : 'не визначено'}`;
+    return `x = ${formatValue(this.target)}, f(x) ${Number.isFinite(fa) ? `= ${formatValue(fa)}` : tr('val.undefined')}`;
   }
 
   updateReadout() {
@@ -282,12 +283,12 @@ export class InteractivePointMode extends BaseMode {
       this.readout.append(
         h('div', { class: 'readout-calc' }, `${fName} = ${subst} ${approx} ${result}`),
         h('div', { class: 'readout-row' }, h('span', { class: 'k' }, `y ${approx}`), h('span', { class: 'readout-big' }, result)),
-        h('p', { class: 'small' }, `Точка ${formatPoint(a, value)} лежить на графіку: при x = ${aText} функція набуває значення ${result}.`),
+        h('p', { class: 'small' }, tr('fx.onGraph', { point: formatPoint(a, value), x: aText, value: result })),
       );
     } else {
       this.readout.append(
-        h('div', { class: 'readout-calc is-undefined' }, `${fName} не визначено: ${reason}.`),
-        h('p', { class: 'small muted' }, `Пряма x = ${aText} не перетинає графік — точки з таким x на ньому немає.`),
+        h('div', { class: 'readout-calc is-undefined' }, tr('fx.undefinedAt', { f: fName, reason })),
+        h('p', { class: 'small muted' }, tr('fx.noPoint', { x: aText })),
       );
     }
     this.handle?.setAttribute('aria-valuenow', String(a));
@@ -416,7 +417,7 @@ export class InteractivePointMode extends BaseMode {
 
   updateSweepButton() {
     if (!this.sweepBtn) return;
-    this.sweepBtn.replaceChildren(icon(this.sweep ? 'pause' : 'play', 16), this.sweep ? 'Зупинити' : 'Пробігти по осі x');
+    this.sweepBtn.replaceChildren(icon(this.sweep ? 'pause' : 'play', 16), this.sweep ? tr('fx.stop') : tr('fx.sweep'));
     this.sweepBtn.setAttribute('aria-pressed', String(Boolean(this.sweep)));
   }
 
@@ -459,6 +460,6 @@ export class InteractivePointMode extends BaseMode {
 
   describe() {
     this.app.setBadge(`<span class="math-lhs">f(x) =</span><span class="math">${this.parsed.html}</span>`);
-    this.app.setPlaneDescription(`Графік функції f(x) = ${this.parsed.text} і вертикальна пряма x = a, яку можна рухати.`);
+    this.app.setPlaneDescription(tr('fx.desc', { f: this.parsed.text }));
   }
 }

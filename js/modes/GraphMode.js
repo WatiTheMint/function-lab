@@ -8,17 +8,18 @@ import { hint } from '../ui/Hint.js';
 import { showToast } from '../ui/Toast.js';
 import { h, clear, nextId } from '../ui/dom.js';
 import { icon } from '../ui/icons.js';
-import { COLOR_NAMES, MAX_FUNCTIONS } from '../core/FunctionManager.js';
+import { colorName, MAX_FUNCTIONS } from '../core/FunctionManager.js';
 import { parseFunction } from '../core/FunctionParser.js';
 import { formatPoint } from '../core/format.js';
 import { EXACT, NUMERIC } from '../core/FunctionAnalyzer.js';
+import { tr } from '../i18n/i18n.js';
 
 const EXAMPLES = ['x^2', '2x + 3', 'sin(x)', 'sqrt(x)', '1/x', '|x - 2|', 'x^3 - 2x', 'e^x', 'ln(x)', 'tg(x)'];
 const REVEAL_MS = 700;
 const BADGES = {
-  [EXACT]: ['badge-exact', 'точно'],
-  [NUMERIC]: ['badge-numeric', '≈ чисельно'],
-  unknown: ['badge-unknown', 'не вдалося'],
+  [EXACT]: ['badge-exact', 'badge.exact'],
+  [NUMERIC]: ['badge-numeric', 'badge.numeric'],
+  unknown: ['badge-unknown', 'badge.unknown'],
 };
 
 export const mathLine = (html, lhs = 'y =') => `<span class="math-lhs">${lhs}</span><span class="math">${html}</span>`;
@@ -33,46 +34,48 @@ export class GraphMode extends BaseMode {
     this.infoTab = 'analysis';
     this.editingId = null;
     this.tableHoverX = null;
+    this.table = null;
+  }
+
+  mount() {
+    const { left, right } = this.app;
+    // таблицу создаём заново при каждом показе: подписи берутся текущей мовою, диапазон сохраняется
     this.table = new ValueTable({
       onChange: () => this.redraw(),
       onHoverRow: (x) => {
         this.tableHoverX = x;
         this.redraw();
       },
-    });
-  }
-
-  mount() {
-    const { left, right } = this.app;
+    }, this.table ?? {});
     this.input = new FormulaInput({
-      label: 'Нова функція',
+      label: tr('g.newFn'),
       visibleLabel: false,
-      submitLabel: 'Побудувати',
+      submitLabel: tr('g.build'),
       keys: true,
       onSubmit: (parsed) => this.addFunction(parsed.source),
     });
-    this.list = h('ul', { class: 'fn-list', 'aria-label': 'Побудовані функції' });
+    this.list = h('ul', { class: 'fn-list', 'aria-label': tr('g.builtList') });
     this.countEl = h('span', { class: 'count' });
 
     left.append(h('div', { class: 'panel-body' },
       h('section', { class: 'section', 'aria-labelledby': 'new-fn-title' },
-        h('h2', { class: 'section-title', id: 'new-fn-title' }, 'Нова функція'),
+        h('h2', { class: 'section-title', id: 'new-fn-title' }, tr('g.newFn')),
         this.input.el,
-        h('div', { class: 'chips', role: 'group', 'aria-label': 'Приклади функцій' },
+        h('div', { class: 'chips', role: 'group', 'aria-label': tr('g.examples') },
           EXAMPLES.map((src) => {
             const p = parseFunction(src);
             return h('button', {
               type: 'button',
               class: 'chip',
-              'aria-label': `Побудувати y = ${p.text}`,
+              'aria-label': tr('g.buildFn', { f: p.text }),
               onClick: () => this.addFunction(src),
               html: `<span class="math">${p.html}</span>`,
             });
           }))),
       h('section', { class: 'section', 'aria-labelledby': 'fn-list-title' },
-        h('div', { class: 'section-head' }, h('h2', { class: 'section-title', id: 'fn-list-title' }, 'Функції', this.countEl)),
+        h('div', { class: 'section-head' }, h('h2', { class: 'section-title', id: 'fn-list-title' }, tr('g.functions'), this.countEl)),
         this.list),
-      hint('graph-basics', 'Натисніть на функцію у списку, щоб виділити її та побачити аналіз. Площину можна рухати мишею, а коліщатком — змінювати масштаб.'),
+      hint('graph-basics', tr('g.hint')),
     ));
 
     this.info = h('div', { class: 'panel-body' });
@@ -124,7 +127,7 @@ export class GraphMode extends BaseMode {
     clear(this.list);
     this.countEl.textContent = `${this.fm.items.length}/${MAX_FUNCTIONS}`;
     if (!this.fm.items.length) {
-      this.list.append(h('li', { class: 'empty' }, 'Поки немає жодної функції. Введіть формулу вище або натисніть на приклад.'));
+      this.list.append(h('li', { class: 'empty' }, tr('g.empty')));
       return;
     }
     for (const item of this.fm.items) this.list.append(this.renderItem(item));
@@ -139,14 +142,14 @@ export class GraphMode extends BaseMode {
     const swatch = h('button', {
       type: 'button',
       class: 'fn-swatch',
-      'aria-label': `Колір графіка: ${COLOR_NAMES[item.color]}. Змінити колір`,
-      title: 'Змінити колір',
+      'aria-label': tr('g.colorLabel', { color: colorName(item.color) }),
+      title: tr('g.changeColor'),
       onClick: () => this.fm.cycleColor(item.id),
     });
 
     if (this.editingId === item.id) {
       const editor = new FormulaInput({
-        label: `Змінити формулу y = ${item.parsed.text}`,
+        label: tr('g.editFn', { f: item.parsed.text }),
         value: item.source,
         submitLabel: 'OK',
         onSubmit: (parsed) => {
@@ -171,7 +174,7 @@ export class GraphMode extends BaseMode {
       type: 'button',
       class: 'fn-main',
       'aria-pressed': String(selected),
-      'aria-label': `y = ${item.parsed.text}${item.visible ? '' : ' (прихована)'}. Вибрати`,
+      'aria-label': tr('g.selectFn', { f: item.parsed.text, hidden: item.visible ? '' : tr('g.hiddenMark') }),
       onClick: () => this.fm.select(item.id),
       onDblclick: () => this.startEdit(item.id),
       html: mathLine(item.parsed.html),
@@ -180,15 +183,15 @@ export class GraphMode extends BaseMode {
       h('button', {
         type: 'button',
         class: 'icon-btn is-quiet is-small',
-        'aria-label': item.visible ? 'Сховати графік' : 'Показати графік',
-        title: item.visible ? 'Сховати' : 'Показати',
+        'aria-label': item.visible ? tr('g.hideGraph') : tr('g.showGraph'),
+        title: item.visible ? tr('g.hide') : tr('g.show'),
         onClick: () => this.fm.toggle(item.id),
       }, icon(item.visible ? 'eye' : 'eyeOff', 17)),
       h('button', {
         type: 'button',
         class: 'icon-btn is-quiet is-small',
-        'aria-label': 'Таблиця значень',
-        title: 'Таблиця значень',
+        'aria-label': tr('common.valueTable'),
+        title: tr('common.valueTable'),
         onClick: () => {
           this.infoTab = 'table';
           if (this.fm.selectedId === item.id) this.renderInfo();
@@ -199,15 +202,15 @@ export class GraphMode extends BaseMode {
       h('button', {
         type: 'button',
         class: 'icon-btn is-quiet is-small',
-        'aria-label': 'Змінити формулу',
-        title: 'Змінити',
+        'aria-label': tr('g.editFormula'),
+        title: tr('g.edit'),
         onClick: () => this.startEdit(item.id),
       }, icon('pencil', 16)),
       h('button', {
         type: 'button',
         class: 'icon-btn is-quiet is-small is-danger',
-        'aria-label': `Видалити y = ${item.parsed.text}`,
-        title: 'Видалити',
+        'aria-label': tr('g.deleteFn', { f: item.parsed.text }),
+        title: tr('g.delete'),
         onClick: () => this.removeFunction(item.id),
       }, icon('trash', 16)),
     );
@@ -224,8 +227,8 @@ export class GraphMode extends BaseMode {
     const removed = this.fm.remove(id);
     if (!removed) return;
     this.list.querySelector('.fn-main')?.focus();
-    showToast(`Функцію y = ${removed.item.parsed.text} видалено`, {
-      action: { label: 'Скасувати', onClick: () => this.fm.restore(removed) },
+    showToast(tr('g.deleted', { f: removed.item.parsed.text }), {
+      action: { label: tr('g.undo'), onClick: () => this.fm.restore(removed) },
     });
   }
 
@@ -235,7 +238,7 @@ export class GraphMode extends BaseMode {
     clear(this.info);
     const item = this.fm.selected;
     if (!item) {
-      this.info.append(h('div', { class: 'empty' }, 'Виберіть функцію у списку, щоб побачити її властивості й таблицю значень.'));
+      this.info.append(h('div', { class: 'empty' }, tr('g.selectHint')));
       return;
     }
     const head = h('div', { class: 'info-head', html: `<span class="dot" style="--c: var(--fn-${item.color + 1})"></span>${mathLine(item.parsed.html)}` });
@@ -263,8 +266,8 @@ export class GraphMode extends BaseMode {
         }
       },
     }, label);
-    const tabs = h('div', { class: 'segmented is-block', role: 'tablist', 'aria-label': 'Відомості про функцію' },
-      tab('analysis', 'Аналіз'), tab('table', 'Таблиця значень'));
+    const tabs = h('div', { class: 'segmented is-block', role: 'tablist', 'aria-label': tr('g.about') },
+      tab('analysis', tr('g.analysis')), tab('table', tr('common.valueTable')));
     const panel = h('div', { role: 'tabpanel', id: `${tabsId}-panel`, 'aria-labelledby': `${tabsId}-${this.infoTab}`, class: 'section' });
     if (this.infoTab === 'analysis') panel.append(...this.renderAnalysis(item));
     else {
@@ -277,7 +280,8 @@ export class GraphMode extends BaseMode {
   renderAnalysis(item) {
     const { sections } = this.fm.analysis(item);
     const dl = h('dl', { class: 'analysis' }, sections.map((s) => {
-      const [cls, label] = BADGES[s.status] ?? BADGES.unknown;
+      const [cls, labelKey] = BADGES[s.status] ?? BADGES.unknown;
+      const label = tr(labelKey);
       return h('div', { class: `analysis-row${s.status === 'unknown' ? ' is-unknown' : ''}` },
         h('dt', {}, h('span', {}, s.title), h('span', { class: `badge ${cls}` }, label)),
         h('dd', {}, s.text, s.note ? h('div', { class: 'note' }, s.note) : null));
@@ -295,15 +299,15 @@ export class GraphMode extends BaseMode {
         },
       }),
       h('span', { class: 'switch-track', 'aria-hidden': 'true' }),
-      h('span', {}, 'Показати нулі, екстремуми й асимптоти на графіку'));
+      h('span', {}, tr('g.showMarkers')));
     return [toggle, dl];
   }
 
   describe() {
     const visible = this.fm.items.filter((i) => i.visible);
     this.app.setPlaneDescription(visible.length
-      ? `На площині ${visible.length === 1 ? 'графік функції' : 'графіки функцій'}: ${visible.map((i) => `y = ${i.parsed.text}`).join('; ')}.`
-      : 'Площина порожня.');
+      ? tr(visible.length === 1 ? 'g.descOne' : 'g.descMany', { list: visible.map((i) => `y = ${i.parsed.text}`).join('; ') })
+      : tr('g.descEmpty'));
   }
 
   // ─────────────── Плоскость ───────────────

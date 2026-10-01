@@ -10,8 +10,9 @@ import { formatNumber, formatValue } from '../../core/format.js';
 import { h, clear } from '../../ui/dom.js';
 import { icon } from '../../ui/icons.js';
 import { hint } from '../../ui/Hint.js';
+import { tr } from '../../i18n/i18n.js';
 
-const LETTERS = ['А', 'Б', 'В', 'Г'];
+const letter = (i) => tr('ch.letters')[i];
 const MINI_VIEW = [-6, 6, -6, 6];
 
 export class ChoiceTask {
@@ -50,30 +51,31 @@ export class ChoiceTask {
       const btn = h('button', {
         type: 'button',
         class: 'option',
-        'aria-label': `Варіант ${LETTERS[i]}`,
+        'aria-label': tr('ch.option', { letter: letter(i) }),
         onClick: () => this.choose(i),
         onMouseenter: () => this.setPreview(i),
         onMouseleave: () => this.setPreview(null),
         onFocus: () => this.setPreview(i),
         onBlur: () => this.setPreview(null),
-      }, canvas, h('span', { class: 'option-letter', 'aria-hidden': 'true' }, LETTERS[i]));
+      }, canvas, h('span', { class: 'option-letter', 'aria-hidden': 'true' }, letter(i)));
       return { btn, canvas, opt };
     });
     left.append(
       h('div', { class: 'task-card' },
-        h('span', { class: 'task-label' }, 'Завдання'),
-        h('p', {}, 'Який із графіків — графік функції'),
+        h('span', { class: 'task-label' }, tr('common.task')),
+        h('p', {}, tr('ch.which')),
         h('div', { html: mathLine(target.parsed.html) })),
-      h('div', { class: 'options', role: 'group', 'aria-label': 'Варіанти графіків' }, this.optionBtns.map((o) => o.btn)),
-      hint('train-choice', 'Наведи на варіант — він з’явиться великим на площині. Підстав у формулу прості x (0, 1, −1) і порівняй із графіком.'),
+      h('div', { class: 'options', role: 'group', 'aria-label': tr('ch.options') }, this.optionBtns.map((o) => o.btn)),
+      hint('train-choice', tr('ch.hint')),
     );
     this.side = h('div', { class: 'section' });
     right.append(this.side);
+    if (this.chosen !== null) this.markOptions();
     this.renderSide();
     // мини-графики создаём после вставки в DOM: нужен размер холста
     requestAnimationFrame(() => this.createMinis());
-    this.app.setBadge(`<span class="muted">Знайди графік</span>${mathLine(target.parsed.html)}`);
-    this.app.setPlaneDescription(`Завдання: вибрати графік функції y = ${target.parsed.text} з чотирьох варіантів.`);
+    this.app.setBadge(`<span class="muted">${tr('ch.badge')}</span>${mathLine(target.parsed.html)}`);
+    this.app.setPlaneDescription(tr('ch.desc', { f: target.parsed.text }));
   }
 
   createMinis() {
@@ -121,18 +123,22 @@ export class ChoiceTask {
     this.chosen = i;
     this.preview = null;
     this.attempts++;
-    const ok = i === this.task.correctIndex;
-    if (ok) this.solved++;
-    this.optionBtns.forEach((o, j) => {
-      o.btn.disabled = true;
-      if (j === this.task.correctIndex) o.btn.classList.add('is-correct');
-      else if (j === i) o.btn.classList.add('is-wrong');
-      o.btn.setAttribute('aria-label', `Варіант ${LETTERS[j]}: y = ${o.opt.parsed.text}${j === this.task.correctIndex ? ' — правильний' : ''}`);
-    });
+    if (i === this.task.correctIndex) this.solved++;
+    this.markOptions();
     for (const r of this.minis) r.requestRender();
     this.renderSide();
     this.app.renderer.requestRender();
     this.side.querySelector('.verdict')?.focus();
+  }
+
+  /** Подсветка вариантов после ответа (и при перестройке панели, например после смены языка). */
+  markOptions() {
+    this.optionBtns.forEach((o, j) => {
+      o.btn.disabled = true;
+      if (j === this.task.correctIndex) o.btn.classList.add('is-correct');
+      else if (j === this.chosen) o.btn.classList.add('is-wrong');
+      o.btn.setAttribute('aria-label', tr('ch.optionFull', { letter: letter(j), f: o.opt.parsed.text, mark: j === this.task.correctIndex ? tr('ch.correctMark') : '' }));
+    });
   }
 
   /** Понятная точка, где выбранный график расходится с правильным. */
@@ -140,18 +146,18 @@ export class ChoiceTask {
     const cmp = compareFunctions(target.parsed.evaluate, chosen.parsed.evaluate, { xMin: -6, xMax: 6 });
     if (cmp.equal) return null;
     const xs = formatNumber(cmp.x, { decimals: 2 });
-    const fx = Number.isFinite(cmp.fx) ? `f(${xs}) = ${toText(target.parsed.ast, xs)} = ${formatValue(cmp.fx)}` : `при x = ${xs} функція не визначена`;
-    const gx = Number.isFinite(cmp.gx) ? `на вибраному графіку y = ${formatValue(cmp.gx)}` : 'на вибраному графіку точки з таким x немає';
-    return { text: `Перевіримо x = ${xs}: ${fx}, а ${gx}.`, x: cmp.x, fx: cmp.fx, gx: cmp.gx };
+    const fx = Number.isFinite(cmp.fx) ? `f(${xs}) = ${toText(target.parsed.ast, xs)} = ${formatValue(cmp.fx)}` : tr('common.undefinedAt', { x: xs });
+    const gx = Number.isFinite(cmp.gx) ? tr('ch.chosenY', { y: formatValue(cmp.gx) }) : tr('ch.chosenNone');
+    return { text: tr('ch.check', { x: xs, fx, gx }), x: cmp.x, fx: cmp.fx, gx: cmp.gx };
   }
 
   renderSide() {
     clear(this.side);
     this.side.append(h('div', { class: 'section-head' },
-      h('h2', { class: 'section-title' }, 'Відповідь'),
-      h('span', { class: 'small muted' }, `розв’язано: ${this.solved} з ${this.attempts}`)));
+      h('h2', { class: 'section-title' }, tr('common.answer')),
+      h('span', { class: 'small muted' }, tr('common.solved', { solved: this.solved, total: this.attempts }))));
     if (this.chosen === null) {
-      this.side.append(h('p', { class: 'small' }, 'Обери один із чотирьох графіків ліворуч.'));
+      this.side.append(h('p', { class: 'small' }, tr('ch.pick')));
       return;
     }
     const { target, options, correctIndex } = this.task;
@@ -161,15 +167,15 @@ export class ChoiceTask {
     const y0 = target.parsed.evaluate(0);
     this.side.append(
       h('div', { class: `verdict ${ok ? 'is-correct' : 'is-wrong'}`, tabindex: '-1', role: 'status' },
-        h('div', { class: 'verdict-title' }, icon(ok ? 'check' : 'x', 22), ok ? 'Правильно!' : 'Не той графік'),
-        h('p', {}, `Правильна відповідь — варіант ${LETTERS[correctIndex]}. На площині його показано зеленим${ok ? '' : ', а вибраний — червоним пунктиром'}.`),
+        h('div', { class: 'verdict-title' }, icon(ok ? 'check' : 'x', 22), ok ? tr('common.correct') : tr('ch.wrongGraph')),
+        h('p', {}, tr('ch.right', { letter: letter(correctIndex), rest: ok ? '' : tr('ch.rightRest') })),
         diff ? h('p', {}, diff.text) : null,
-        Number.isFinite(y0) ? h('p', { class: 'small' }, `Підказка на майбутнє: графік перетинає вісь Oy у точці (0; ${formatValue(y0)}) — підстав x = 0.`) : null),
+        Number.isFinite(y0) ? h('p', { class: 'small' }, tr('ch.tip', { y: formatValue(y0) })) : null),
       h('ul', { class: 'point-list' }, options.map((o, j) => h('li', {},
-        h('strong', {}, `${LETTERS[j]}:`),
+        h('strong', {}, `${letter(j)}:`),
         h('span', { html: mathLine(o.parsed.html) }),
         j === correctIndex ? h('span', { class: 'ok' }, '✓') : null))),
-      h('button', { type: 'button', class: 'btn btn-primary btn-block', onClick: () => this.newTask() }, 'Наступне завдання', icon('arrowRight', 16)),
+      h('button', { type: 'button', class: 'btn btn-primary btn-block', onClick: () => this.newTask() }, tr('ch.next'), icon('arrowRight', 16)),
     );
   }
 
@@ -178,7 +184,7 @@ export class ChoiceTask {
     if (this.chosen === null) {
       if (this.preview !== null) {
         r.plotFunction(options[this.preview].parsed.evaluate, { color: r.colors.fn[0], width: 2.6 });
-        r.drawLabel(12, 14, `Варіант ${LETTERS[this.preview]}`, { baseline: 'top', font: '600 13px "IBM Plex Sans", sans-serif' });
+        r.drawLabel(12, 14, tr('ch.option', { letter: letter(this.preview) }), { baseline: 'top', font: '600 13px "IBM Plex Sans", sans-serif' });
       }
       return;
     }

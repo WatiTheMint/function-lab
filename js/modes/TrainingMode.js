@@ -9,11 +9,12 @@ import { PointsTask } from './training/PointsTask.js';
 import { ChoiceTask } from './training/ChoiceTask.js';
 import { FormulaTask } from './training/FormulaTask.js';
 import { h } from '../ui/dom.js';
+import { tr } from '../i18n/i18n.js';
 
 const KINDS = [
-  { id: 'points', label: 'За точками', title: 'Побудуй графік за точками', make: (m) => new PointsTask(m) },
-  { id: 'choice', label: 'Вибір', title: 'Обери графік серед варіантів', make: (m) => new ChoiceTask(m) },
-  { id: 'formula', label: 'Формула', title: 'Запиши формулу за графіком', make: (m) => new FormulaTask(m) },
+  { id: 'points', make: (m) => new PointsTask(m) },
+  { id: 'choice', make: (m) => new ChoiceTask(m) },
+  { id: 'formula', make: (m) => new FormulaTask(m) },
 ];
 
 export class TrainingMode extends BaseMode {
@@ -41,14 +42,14 @@ export class TrainingMode extends BaseMode {
       'aria-selected': String(k.id === this.kind),
       tabindex: k.id === this.kind ? '0' : '-1',
       onClick: () => this.switchKind(k.id),
-      title: k.title,
-      'aria-label': k.title,
+      title: tr(`tr.${k.id}.title`),
+      'aria-label': tr(`tr.${k.id}.title`),
       onKeydown: (e) => this.onTabKey(e, k.id),
-    }, k.label));
+    }, tr(`tr.${k.id}`)));
     this.subLeft = h('div', { class: 'section' });
     this.subRight = h('div', { class: 'section' });
     left.append(h('div', { class: 'panel-body' },
-      h('div', { class: 'segmented is-block', role: 'tablist', 'aria-label': 'Вправа' }, this.tabs),
+      h('div', { class: 'segmented is-block', role: 'tablist', 'aria-label': tr('tr.group') }, this.tabs),
       this.subLeft));
     right.append(h('div', { class: 'panel-body' }, this.subRight));
     this.sub.mount(this.subLeft, this.subRight);

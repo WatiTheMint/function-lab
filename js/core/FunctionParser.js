@@ -3,6 +3,7 @@
 // eval/new Function не используются: вычисление идёт по дереву замыканий.
 
 import { formatNumber, formatValue, MINUS, toSuperscript, toSubscript } from './format.js';
+import { tr } from '../i18n/i18n.js';
 
 export class ParseError extends Error {
   constructor(message, start = 0, end = start + 1) {
@@ -99,7 +100,7 @@ function readNumber(src, i) {
     j++; // «2.» — допустимо
   }
   if ((src[j] === '.' || src[j] === ',') && isDigit(src[j + 1] ?? '')) {
-    throw new ParseError('Зайвий десятковий роздільник у числі', j, j + 1);
+    throw new ParseError(tr('p.extraDecimal'), j, j + 1);
   }
   return { value: parseFloat(src.slice(i, j).replace(',', '.')), end: j };
 }
@@ -112,8 +113,8 @@ function splitWord(word, offset) {
     if (!name) {
       const rest = word.slice(k);
       const guess = NAMES.find((n) => n.length > 1 && n.startsWith(rest));
-      const hint = guess ? ` Можливо, ви мали на увазі ${guess}(x)?` : ' Використовуйте x, числа, pi, e і функції на кшталт sin, sqrt, ln.';
-      throw new ParseError(`Невідоме ім’я «${word}».${hint}`, offset, offset + word.length);
+      const hint = guess ? tr('p.didYouMean', { guess }) : tr('p.useAllowed');
+      throw new ParseError(tr('p.unknownName', { word, hint }), offset, offset + word.length);
     }
     parts.push({ type: 'name', value: name, start: offset + k, end: offset + k + name.length });
     k += name.length;
@@ -140,7 +141,7 @@ function tokenize(src, offset) {
       let j = i;
       let s = '';
       if (src[j] === '⁻') { s = '-'; j++; }
-      if (!SUPERSCRIPT_DIGITS.includes(src[j] ?? '')) throw new ParseError('Незрозумілий показник степеня', at(i), at(j + 1));
+      if (!SUPERSCRIPT_DIGITS.includes(src[j] ?? '')) throw new ParseError(tr('p.badExponent'), at(i), at(j + 1));
       while (j < src.length && SUPERSCRIPT_DIGITS.includes(src[j])) { s += SUPERSCRIPT_DIGITS.indexOf(src[j]); j++; }
       tokens.push({ type: 'op', value: '^', start: at(i), end: at(i) });
       tokens.push({ type: 'num', value: Number(s), start: at(i), end: at(j) });
@@ -161,14 +162,14 @@ function tokenize(src, offset) {
         if (src[j2] === '_') j2++;
         let brace = null;
         if (OPEN[src[j2]]) { brace = OPEN[src[j2]]; j2++; }
-        if (!isDigit(src[j2] ?? '') && src[j2] !== '.') throw new ParseError('Після log_ очікується основа, наприклад log_2(x)', at(i), at(j2 + 1));
+        if (!isDigit(src[j2] ?? '') && src[j2] !== '.') throw new ParseError(tr('p.logBase'), at(i), at(j2 + 1));
         const { value, end } = readNumber(src, j2);
         j2 = end;
         if (brace) {
-          if (src[j2] !== brace) throw new ParseError(`Не закрито дужку в основі логарифма`, at(i), at(j2));
+          if (src[j2] !== brace) throw new ParseError(tr('p.logBrace'), at(i), at(j2));
           j2++;
         }
-        if (!(value > 0) || value === 1) throw new ParseError('Основа логарифма має бути більшою за 0 і не дорівнювати 1', at(i), at(j2));
+        if (!(value > 0) || value === 1) throw new ParseError(tr('p.logBaseRange'), at(i), at(j2));
         last.base = value;
         last.end = at(j2);
         i = j2;
@@ -189,9 +190,9 @@ function tokenize(src, offset) {
     if (CLOSE.has(c)) { tokens.push({ type: 'rparen', value: c, start: at(i), end: at(i + 1) }); i++; continue; }
     if (c === '|') { tokens.push({ type: 'bar', start: at(i), end: at(i + 1) }); i++; continue; }
     if (c === '=') { tokens.push({ type: 'eq', start: at(i), end: at(i + 1) }); i++; continue; }
-    if (c === ',') throw new ParseError('Кома допустима лише всередині числа: 2,5', at(i), at(i + 1));
-    if (/[а-яёіїєґ]/i.test(c)) throw new ParseError('Використовуйте латинські літери: x, sin, cos, sqrt…', at(i), at(i + 1));
-    throw new ParseError(`Незрозумілий символ «${c}»`, at(i), at(i + 1));
+    if (c === ',') throw new ParseError(tr('p.comma'), at(i), at(i + 1));
+    if (/[а-яёіїєґ]/i.test(c)) throw new ParseError(tr('p.latin'), at(i), at(i + 1));
+    throw new ParseError(tr('p.badChar', { c }), at(i), at(i + 1));
   }
   tokens.push({ type: 'end', start: at(src.length), end: at(src.length) });
   return tokens;
@@ -204,7 +205,7 @@ const describeToken = (t) => {
   if (t.type === 'rparen') return `«${t.value}»`;
   if (t.type === 'bar') return '«|»';
   if (t.type === 'eq') return '«=»';
-  if (t.type === 'num') return `число ${formatNumber(t.value)}`;
+  if (t.type === 'num') return tr('p.number', { n: formatNumber(t.value) });
   return `«${t.value}»`;
 };
 
@@ -223,10 +224,10 @@ class Parser {
     const node = this.expr();
     const t = this.peek();
     if (t.type !== 'end') {
-      if (t.type === 'rparen') throw new ParseError('Зайва закривна дужка', t.start, t.end);
-      if (t.type === 'eq') throw new ParseError('Зайвий знак «=»', t.start, t.end);
-      if (t.type === 'bar') throw new ParseError('Зайва риска модуля «|»', t.start, t.end);
-      throw new ParseError(`Неочікувано ${describeToken(t)}`, t.start, t.end);
+      if (t.type === 'rparen') throw new ParseError(tr('p.extraRparen'), t.start, t.end);
+      if (t.type === 'eq') throw new ParseError(tr('p.extraEq'), t.start, t.end);
+      if (t.type === 'bar') throw new ParseError(tr('p.extraBar'), t.start, t.end);
+      throw new ParseError(tr('p.unexpected', { tok: describeToken(t) }), t.start, t.end);
     }
     return node;
   }
@@ -277,7 +278,7 @@ class Parser {
     const t = this.peek();
     if (this.isOp(t, '^')) {
       this.next();
-      if (this.peek().type === 'end') throw new ParseError('Після «^» потрібен показник степеня', t.start, t.end);
+      if (this.peek().type === 'end') throw new ParseError(tr('p.expAfterCaret'), t.start, t.end);
       const exponent = this.unary();
       return { type: 'pow', base, exponent };
     }
@@ -291,14 +292,14 @@ class Parser {
         return { type: 'num', value: t.value };
       case 'name':
         if (t.value === 'x') return { type: 'var' };
-        if (t.value === 'y') throw new ParseError('Праворуч від «=» має бути лише x: формула задає y через x', t.start, t.end);
+        if (t.value === 'y') throw new ParseError(tr('p.onlyX'), t.start, t.end);
         if (t.value in CONSTANTS) return { type: 'const', name: t.value, value: CONSTANTS[t.value] };
         return this.call(t);
       case 'lparen': {
         const inner = this.expr();
         const close = this.next();
-        if (close.type !== 'rparen') throw new ParseError('Бракує закривної дужки', t.start, close.start);
-        if (close.value !== t.close) throw new ParseError(`Дужки не збігаються: «${t.value}» закрито «${close.value}»`, t.start, close.end);
+        if (close.type !== 'rparen') throw new ParseError(tr('p.missingRparen'), t.start, close.start);
+        if (close.value !== t.close) throw new ParseError(tr('p.parenMismatch', { open: t.value, close: close.value }), t.start, close.end);
         return inner;
       }
       case 'bar': {
@@ -306,19 +307,19 @@ class Parser {
         const inner = this.expr();
         const close = this.next();
         this.absDepth--;
-        if (close.type !== 'bar') throw new ParseError('Модуль не закрито: потрібна друга риска «|»', t.start, close.start);
+        if (close.type !== 'bar') throw new ParseError(tr('p.absNotClosed'), t.start, close.start);
         return { type: 'call', fn: 'abs', arg: inner };
       }
       case 'rparen':
-        throw new ParseError('Зайва закривна дужка', t.start, t.end);
+        throw new ParseError(tr('p.extraRparen'), t.start, t.end);
       case 'op':
-        throw new ParseError(`Пропущено число або x перед ${describeToken(t)}`, t.start, t.end);
+        throw new ParseError(tr('p.missingBefore', { tok: describeToken(t) }), t.start, t.end);
       case 'eq':
-        throw new ParseError('Зайвий знак «=»', t.start, t.end);
+        throw new ParseError(tr('p.extraEq'), t.start, t.end);
       case 'end':
-        throw new ParseError('Формула обривається — допишіть вираз', t.start, t.end);
+        throw new ParseError(tr('p.incomplete'), t.start, t.end);
       default:
-        throw new ParseError('Незрозумілий запис', t.start, t.end);
+        throw new ParseError(tr('p.badSyntax'), t.start, t.end);
     }
   }
 
@@ -335,7 +336,7 @@ class Parser {
         return make({ type: 'neg', arg: this.primary() });
       }
       if (!this.startsOperand(this.peek())) {
-        throw new ParseError(`Після «${t.value === 'cbrt' ? '∛' : '√'}» потрібен підкореневий вираз`, t.start, t.end);
+        throw new ParseError(tr('p.radicand', { sym: t.value === 'cbrt' ? '∛' : '√' }), t.start, t.end);
       }
       return make(this.primary());
     }
@@ -353,12 +354,12 @@ class Parser {
       this.next();
       arg = this.expr();
       const close = this.next();
-      if (close.type !== 'rparen') throw new ParseError(`Не закрито дужку після ${label}`, p.start, close.start);
-      if (close.value !== p.close) throw new ParseError(`Дужки не збігаються: «${p.value}» закрито «${close.value}»`, p.start, close.end);
+      if (close.type !== 'rparen') throw new ParseError(tr('p.callNotClosed', { f: label }), p.start, close.start);
+      if (close.value !== p.close) throw new ParseError(tr('p.parenMismatch', { open: p.value, close: close.value }), p.start, close.end);
     } else if (this.startsOperand(p) || this.isOp(p, '-')) {
       arg = this.implicitArgument();
     } else {
-      throw new ParseError(`Після «${label}» потрібен аргумент, наприклад ${label}(x)`, t.start, t.end);
+      throw new ParseError(tr('p.needArg', { f: label }), t.start, t.end);
     }
     const node = make(arg);
     return exponent ? { type: 'pow', base: node, exponent } : node;
@@ -481,7 +482,7 @@ export function explainAt(ast, x) {
       case 'div': {
         const a = ev(node.left), d = ev(node.right);
         if (Number.isNaN(a) || Number.isNaN(d)) return NaN;
-        if (d === 0) return fail(`ділення на нуль: знаменник ${toText(node.right)} дорівнює 0`);
+        if (d === 0) return fail(tr('r.div0', { den: toText(node.right) }));
         return a / d;
       }
       case 'pow': {
@@ -489,8 +490,8 @@ export function explainAt(ast, x) {
         if (Number.isNaN(b) || Number.isNaN(e)) return NaN;
         const v = realPow(b, e);
         if (Number.isNaN(v)) {
-          if (b === 0) return fail('нуль не можна підносити до від’ємного степеня');
-          return fail(`від’ємне число ${formatValue(b)} не можна піднести до степеня ${formatValue(e)}`);
+          if (b === 0) return fail(tr('r.zeroNegPow'));
+          return fail(tr('r.negPow', { b: formatValue(b), e: formatValue(e) }));
         }
         return v;
       }
@@ -501,18 +502,18 @@ export function explainAt(ast, x) {
         if (!Number.isNaN(v)) return v;
         const arg = toText(node.arg);
         switch (node.fn) {
-          case 'sqrt': return fail(`корінь із від’ємного числа: ${arg} = ${formatValue(a)}`);
-          case 'ln': case 'lg': return fail(`логарифм визначений лише для додатних чисел, а ${arg} = ${formatValue(a)}`);
-          case 'arcsin': case 'arccos': return fail(`${FUNCTIONS[node.fn].label} визначений лише на [−1; 1], а ${arg} = ${formatValue(a)}`);
-          case 'tan': return fail(`tg не визначений там, де cos(${arg}) = 0`);
-          case 'cot': return fail(`ctg не визначений там, де sin(${arg}) = 0`);
-          default: return fail('значення не визначене');
+          case 'sqrt': return fail(tr('r.sqrtNeg', { arg, v: formatValue(a) }));
+          case 'ln': case 'lg': return fail(tr('r.logNonPos', { arg, v: formatValue(a) }));
+          case 'arcsin': case 'arccos': return fail(tr('r.arcRange', { f: FUNCTIONS[node.fn].label, arg, v: formatValue(a) }));
+          case 'tan': return fail(tr('r.tan', { arg }));
+          case 'cot': return fail(tr('r.cot', { arg }));
+          default: return fail(tr('r.undefined'));
         }
       }
       case 'log': {
         const a = ev(node.arg);
         if (Number.isNaN(a)) return NaN;
-        if (!(a > 0)) return fail(`логарифм визначений лише для додатних чисел, а ${toText(node.arg)} = ${formatValue(a)}`);
+        if (!(a > 0)) return fail(tr('r.logNonPos', { arg: toText(node.arg), v: formatValue(a) }));
         return Math.log(a) / Math.log(node.base);
       }
       default: return NaN;
@@ -520,7 +521,7 @@ export function explainAt(ast, x) {
   };
   const value = ev(ast);
   if (Number.isFinite(value)) return { value, reason: null };
-  if (!reason) reason = Number.isNaN(value) ? 'значення не визначене' : 'значення занадто велике для обчислення';
+  if (!reason) reason = Number.isNaN(value) ? tr('r.undefined') : tr('r.overflow');
   return { value: NaN, reason };
 }
 
@@ -656,15 +657,15 @@ export function parseFunction(input) {
   const source = String(input ?? '');
   const src = normalizeInput(source);
   try {
-    if (!src.trim()) throw new ParseError('Введіть формулу, наприклад x^2 або 2x + 3', 0, 0);
+    if (!src.trim()) throw new ParseError(tr('p.empty'), 0, 0);
     let offset = 0;
     const lhs = src.match(LHS_FUNCTION);
     if (lhs) offset = lhs[0].length;
     else if (LHS_VERTICAL.test(src)) {
-      throw new ParseError('«x = …» — це вертикальна пряма, а не функція y = f(x): одному x відповідає нескінченно багато y. Зазирніть у режим «Це функція?»', 0, src.length);
+      throw new ParseError(tr('p.vertical'), 0, src.length);
     }
     const body = src.slice(offset);
-    if (!body.trim()) throw new ParseError('Після «=» потрібна формула', offset, offset);
+    if (!body.trim()) throw new ParseError(tr('p.afterEq'), offset, offset);
     const tokens = tokenize(body, offset);
     const ast = new Parser(tokens).parse();
     return {
@@ -685,8 +686,8 @@ export function parseFunction(input) {
 export function parseConstant(input) {
   const res = parseFunction(input);
   if (!res.ok) return res;
-  if (dependsOnX(res.ast)) return { ok: false, error: { message: 'Тут потрібне число, без x', start: 0, end: String(input).length } };
+  if (dependsOnX(res.ast)) return { ok: false, error: { message: tr('p.needNumber'), start: 0, end: String(input).length } };
   const value = res.evaluate(0);
-  if (!Number.isFinite(value)) return { ok: false, error: { message: 'Вираз не має значення', start: 0, end: String(input).length } };
+  if (!Number.isFinite(value)) return { ok: false, error: { message: tr('p.noValue'), start: 0, end: String(input).length } };
   return { ok: true, value, text: res.text };
 }

@@ -2,6 +2,7 @@
 
 import { h, storage } from './dom.js';
 import { icon } from './icons.js';
+import { tr } from '../i18n/i18n.js';
 
 const KEY = 'fl.hints.dismissed';
 
@@ -14,7 +15,7 @@ export function hint(id, content) {
     h('button', {
       type: 'button',
       class: 'icon-btn is-quiet',
-      'aria-label': 'Сховати підказку',
+      'aria-label': tr('hint.hide'),
       onClick: () => {
         storage.set(KEY, [...new Set([...storage.get(KEY, []), id])]);
         el.remove();

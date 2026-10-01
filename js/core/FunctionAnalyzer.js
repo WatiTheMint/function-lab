@@ -12,11 +12,12 @@ import * as P from './polynomial.js';
 import * as S from './intervals.js';
 import { bisect, domainEdge, goldenMin, hasJump, isNum, linspace } from './numeric.js';
 import { describeNumber, formatApprox, formatNumber, formatPiMultiple, formatPiOrApprox, MINUS } from './format.js';
+import { tr } from '../i18n/i18n.js';
 
 export const EXACT = 'exact';
 export const NUMERIC = 'numeric';
 export const UNKNOWN = 'unknown';
-export const UNKNOWN_TEXT = 'Не вдалося визначити автоматично';
+export const unknownText = () => tr('a.unknown');
 
 const WINDOW = [-10, 10];
 const ZERO_WINDOW = [-50, 50];
@@ -268,23 +269,23 @@ function numericDomainText(f, a, b) {
       start = null;
     }
   }
-  if (parts.length > 6) return `${parts.slice(0, 4).join(' ∪ ')} ∪ … (усього ${parts.length} проміжків)`;
+  if (parts.length > 6) return tr('a.moreParts', { parts: parts.slice(0, 4).join(' ∪ '), n: parts.length });
   const text = parts.length ? parts.join(' ∪ ') : '∅';
-  return isolated ? `${text} та окремі точки` : text;
+  return isolated ? tr('a.andPoints', { text }) : text;
 }
 
 function describeDomain(dom, f) {
   if (!dom.exact) {
     return {
       status: UNKNOWN,
-      text: UNKNOWN_TEXT,
-      note: `Чисельна оцінка на відрізку [${MINUS}10; 10]: ${numericDomainText(f, ...WINDOW)}`,
+      text: unknownText(),
+      note: tr('a.domainEstimate', { est: numericDomainText(f, ...WINDOW) }),
     };
   }
-  if (!dom.set.length) return { status: EXACT, text: '∅ — функція ніде не визначена' };
+  if (!dom.set.length) return { status: EXACT, text: tr('a.domainEmpty') };
   const fam = dom.families.map((F) => `x ≠ ${familyText(F)}`);
   if (S.isReal(dom.set)) {
-    if (!fam.length) return { status: EXACT, text: 'ℝ — усі дійсні числа' };
+    if (!fam.length) return { status: EXACT, text: tr('a.domainReal') };
     return { status: EXACT, text: fam.join('; ') };
   }
   const excl = S.excludedPoints(dom.set);
@@ -431,7 +432,7 @@ function solve(node, t) {
 
 function listPoints(xs, max = 8) {
   const shown = xs.slice(0, max).map((x) => eqApprox('x', x));
-  if (xs.length > max) shown.push(`… ще ${xs.length - max}`);
+  if (xs.length > max) shown.push(tr('a.more', { n: xs.length - max }));
   return shown.join('; ');
 }
 
@@ -517,15 +518,15 @@ function verifyFamily(F, ok, dom) {
 function analyzeZeros(ast, f, dom) {
   if (isConst(ast)) {
     const v = f(0);
-    if (v === 0) return { status: EXACT, text: 'f(x) = 0 при всіх x', points: [], families: [] };
-    return { status: EXACT, text: 'немає — графік не перетинає вісь Ox', points: [], families: [] };
+    if (v === 0) return { status: EXACT, text: tr('a.zeroEverywhere'), points: [], families: [] };
+    return { status: EXACT, text: tr('a.noZeros'), points: [], families: [] };
   }
   const sol = solve(ast, 0);
   const ok = (x) => {
     const y = f(x);
     return isNum(y) && Math.abs(y) <= 1e-7;
   };
-  if (sol?.all) return { status: EXACT, text: 'f(x) = 0 на всій області визначення', points: [], families: [] };
+  if (sol?.all) return { status: EXACT, text: tr('a.zeroOnDomain'), points: [], families: [] };
   const verified = sol ? sol.families.map((F) => verifyFamily(F, ok, dom)) : null;
   if (sol && verified.every(Boolean)) {
     const families = verified.filter((F, i) => verified.findIndex((G) => Math.abs(G.T - F.T) < 1e-12 && Math.abs(G.x0 - F.x0) < 1e-9) === i);
@@ -535,7 +536,7 @@ function analyzeZeros(ast, f, dom) {
     for (const F of families) parts.push(`x = ${familyText(F)}${F.except.length ? `, k ≠ ${F.except.join(', ')}` : ''}`);
     return {
       status: EXACT,
-      text: parts.length ? parts.join('; ') : 'немає — графік не перетинає вісь Ox',
+      text: parts.length ? parts.join('; ') : tr('a.noZeros'),
       points,
       families,
     };
@@ -546,8 +547,8 @@ function analyzeZeros(ast, f, dom) {
   if (roots.length) parts.push(listPoints(roots, 6));
   return {
     status: NUMERIC,
-    text: parts.length ? parts.join('; ') : 'не знайдено',
-    note: `Пошук чисельний на відрізку [${MINUS}50; 50]: знайдені нулі наближені, а інші можуть бути поза відрізком або дуже близько один до одного.`,
+    text: parts.length ? parts.join('; ') : tr('a.notFound'),
+    note: tr('a.zerosNote'),
     points: roots,
     families: [],
   };
@@ -557,7 +558,7 @@ function analyzeZeros(ast, f, dom) {
 
 function analyzeYIntercept(ast) {
   const { value, reason } = explainAt(ast, 0);
-  if (!isNum(value)) return { status: EXACT, text: 'немає — x = 0 не входить до області визначення', note: `Причина: ${reason}.`, point: null };
+  if (!isNum(value)) return { status: EXACT, text: tr('a.noYint'), note: tr('a.reason', { reason }), point: null };
   return { status: EXACT, text: `(0; ${formatApprox(value)})`, point: { x: 0, y: value } };
 }
 
@@ -660,12 +661,12 @@ function evenPowerOfRational(ast) {
   return null;
 }
 
-const fmtIntervals = (list) => (list.length ? list.map(S.formatInterval).join(', ') : 'немає');
+const fmtIntervals = (list) => (list.length ? list.map(S.formatInterval).join(', ') : tr('a.none'));
 
 function extremaText(list) {
-  if (!list.length) return 'немає';
+  if (!list.length) return tr('a.none');
   const parts = list.slice(0, 6).map((e) => `${e.kind === 'max' ? 'max' : 'min'}: (${formatApprox(e.x)}; ${formatApprox(e.y)})`);
-  if (list.length > 6) parts.push(`… ще ${list.length - 6}`);
+  if (list.length > 6) parts.push(tr('a.more', { n: list.length - 6 }));
   return parts.join('; ');
 }
 
@@ -738,9 +739,9 @@ function periodicMonotonic(per, f) {
   } else {
     const iv = map(fn === 'tan' ? [-PI / 2, PI / 2] : [0, PI]);
     const increasing = (fn === 'tan') === (sgn > 0);
-    result.inc = increasing ? `на кожному проміжку ${range(iv, P1, true)}` : 'немає';
-    result.dec = increasing ? 'немає' : `на кожному проміжку ${range(iv, P1, true)}`;
-    result.extrema = 'немає';
+    result.inc = increasing ? tr('a.onEach', { range: range(iv, P1, true) }) : tr('a.none');
+    result.dec = increasing ? tr('a.none') : tr('a.onEach', { range: range(iv, P1, true) });
+    result.extrema = tr('a.none');
   }
   return result;
 }
@@ -828,7 +829,7 @@ function numericMonotonic(f) {
     extrema: extremaText(extrema),
     extremaPoints: extrema,
     extremaFamilies: [],
-    note: `Чисельний аналіз на відрізку [${MINUS}10; 10]; кінці ±10 — межа відрізка, а не функції.`,
+    note: tr('a.monoNote'),
   };
 }
 
@@ -844,7 +845,7 @@ function analyzeMonotonic(ast, f, dom) {
   }
   const num = numericMonotonic(f);
   if (num) return num;
-  return { status: UNKNOWN, inc: UNKNOWN_TEXT, dec: UNKNOWN_TEXT, extrema: UNKNOWN_TEXT, extremaPoints: [], extremaFamilies: [], flat: null, note: 'Функція надто часто змінює характер на відрізку [−10; 10].' };
+  return { status: UNKNOWN, inc: unknownText(), dec: unknownText(), extrema: unknownText(), extremaPoints: [], extremaFamilies: [], flat: null, note: tr('a.tooWiggly') };
 }
 
 // ─────────────────────────────────── Чётность ───────────────────────────────────
@@ -901,8 +902,8 @@ function symbolicParity(node) {
 function analyzeParity(ast, f, dom) {
   if (isConst(ast)) {
     const v = f(0);
-    if (v === 0) return { status: EXACT, text: 'і парна, і непарна (f(x) = 0)' };
-    return { status: EXACT, text: 'парна (стала функція)', note: 'Графік симетричний відносно осі Oy.' };
+    if (v === 0) return { status: EXACT, text: tr('a.bothParity') };
+    return { status: EXACT, text: tr('a.constEven'), note: tr('a.symOy') };
   }
   if (dom.exact) {
     const symFam = dom.families.every((F) => onFamily(F, -F.x0));
@@ -910,16 +911,16 @@ function analyzeParity(ast, f, dom) {
       const w = [0.5, 1, 2, 3, 1.5, 4, 5, 7, 10, 0.25].flatMap((x) => [x, -x]).find((x) => inDomain(dom, x) && !inDomain(dom, -x));
       return {
         status: EXACT,
-        text: 'ні парна, ні непарна',
+        text: tr('a.neither'),
         note: w !== undefined
-          ? `Область визначення несиметрична: f(${formatNumber(w)}) існує, а f(${formatNumber(-w)}) — ні.`
-          : 'Область визначення несиметрична відносно нуля.',
+          ? tr('a.asymDomain', { x: formatNumber(w), mx: formatNumber(-w) })
+          : tr('a.asymDomainZero'),
       };
     }
   }
   const sym = symbolicParity(ast);
-  if (sym === 'even') return { status: EXACT, text: 'парна: f(−x) = f(x)', note: 'Графік симетричний відносно осі Oy.' };
-  if (sym === 'odd') return { status: EXACT, text: 'непарна: f(−x) = −f(x)', note: 'Графік симетричний відносно початку координат.' };
+  if (sym === 'even') return { status: EXACT, text: tr('a.even'), note: tr('a.symOy') };
+  if (sym === 'odd') return { status: EXACT, text: tr('a.odd'), note: tr('a.symO') };
 
   const probes = [1, 2, 0.5, 3, 1.5, 2.5, 0.7, 1.3, 4.1, 5.3, 6.7, 0.31, 7.9, 9.2, 13.7, 21.1];
   let notEven = null, notOdd = null, asym = null, checked = 0;
@@ -933,19 +934,19 @@ function analyzeParity(ast, f, dom) {
     if (!notOdd && Math.abs(a + b) > tol) notOdd = { x, a, b };
   }
   if (asym !== null) {
-    return { status: EXACT, text: 'ні парна, ні непарна', note: `Область визначення несиметрична: f(${formatNumber(asym)}) існує, а f(${formatNumber(-asym)}) — ні.` };
+    return { status: EXACT, text: tr('a.neither'), note: tr('a.asymDomain', { x: formatNumber(asym), mx: formatNumber(-asym) }) };
   }
   if (notEven && notOdd) {
     const w = notEven;
     const fx = (x) => `f(${formatNumber(x)})`;
     const note = notOdd.x === w.x
-      ? `Контрприклад: ${eqApprox(fx(w.x), w.a)}, ${eqApprox(fx(-w.x), w.b)} — не рівні й не протилежні.`
-      : `${eqApprox(fx(w.x), w.a)}, ${eqApprox(fx(-w.x), w.b)} — отже, не парна; ${eqApprox(fx(notOdd.x), notOdd.a)}, ${eqApprox(fx(-notOdd.x), notOdd.b)} — отже, не непарна.`;
-    return { status: EXACT, text: 'ні парна, ні непарна', note };
+      ? tr('a.counter', { a: eqApprox(fx(w.x), w.a), b: eqApprox(fx(-w.x), w.b) })
+      : tr('a.counter2', { a: eqApprox(fx(w.x), w.a), b: eqApprox(fx(-w.x), w.b), c: eqApprox(fx(notOdd.x), notOdd.a), d: eqApprox(fx(-notOdd.x), notOdd.b) });
+    return { status: EXACT, text: tr('a.neither'), note };
   }
-  if (checked && !notEven) return { status: NUMERIC, text: 'схоже на парну', note: `Рівність f(−x) = f(x) виконується в ${checked} перевірених точках, але строго не доведена.` };
-  if (checked && !notOdd) return { status: NUMERIC, text: 'схоже на непарну', note: `Рівність f(−x) = −f(x) виконується в ${checked} перевірених точках, але строго не доведена.` };
-  return { status: UNKNOWN, text: UNKNOWN_TEXT };
+  if (checked && !notEven) return { status: NUMERIC, text: tr('a.likelyEven'), note: tr('a.likelyEvenNote', { n: checked }) };
+  if (checked && !notOdd) return { status: NUMERIC, text: tr('a.likelyOdd'), note: tr('a.likelyOddNote', { n: checked }) };
+  return { status: UNKNOWN, text: unknownText() };
 }
 
 // ─────────────────────────────────── Асимптоты ───────────────────────────────────
@@ -1112,7 +1113,7 @@ function growsUnbounded(f, c, side) {
 }
 
 function joinAsymptotes(parts) {
-  return parts.length ? parts.join('; ') : 'немає';
+  return parts.length ? parts.join('; ') : tr('a.none');
 }
 
 function rationalAsymptotes(R, f) {
@@ -1133,37 +1134,37 @@ function rationalAsymptotes(R, f) {
   const markers = { vlines: [], lines: [], holes };
   const vs = red.den.length > 1 ? P.realRoots(red.den) : [];
   if (vs.length) {
-    parts.push(`вертикальн${vs.length > 1 ? 'і' : 'а'}: ${vs.map((x) => eqApprox('x', x)).join(', ')}`);
+    parts.push(tr(vs.length > 1 ? 'a.vertMany' : 'a.vertOne', { list: vs.map((x) => eqApprox('x', x)).join(', ') }));
     markers.vlines.push(...vs);
   }
   const dn = red.num.length - 1, dd = red.den.length - 1;
   if (dd > 0 || dn <= 0) {
-    if (dn < dd) { parts.push('горизонтальна: y = 0'); markers.lines.push({ k: 0, b: 0 }); }
+    if (dn < dd) { parts.push(tr('a.horiz', { eq: 'y = 0' })); markers.lines.push({ k: 0, b: 0 }); }
     else if (dn === dd && dd > 0) {
       const y = red.num[dn] / red.den[dd];
-      parts.push(`горизонтальна: y = ${formatApprox(y)}`);
+      parts.push(tr('a.horiz', { eq: `y = ${formatApprox(y)}` }));
       markers.lines.push({ k: 0, b: y });
     } else if (dn === dd + 1) {
       const { q } = P.divmod(red.num, red.den);
-      parts.push(`похила: y = ${lineText(q[1] ?? 0, q[0] ?? 0)}`);
+      parts.push(tr('a.oblique', { eq: `y = ${lineText(q[1] ?? 0, q[0] ?? 0)}` }));
       markers.lines.push({ k: q[1] ?? 0, b: q[0] ?? 0 });
     }
   }
   const note = holes.length
-    ? `Виколот${holes.length > 1 ? 'і точки' : 'а точка'} ${holes.map((h) => `(${formatApprox(h.x)}; ${formatApprox(h.y)})`).join(', ')} — це не асимптота.`
+    ? tr(holes.length > 1 ? 'a.holeMany' : 'a.holeOne', { pts: holes.map((h) => `(${formatApprox(h.x)}; ${formatApprox(h.y)})`).join(', ') })
     : null;
   return { status: EXACT, text: joinAsymptotes(parts), note, markers };
 }
 
 function analyzeAsymptotes(ast, f, dom) {
   const markers = { vlines: [], vfamilies: [], lines: [], holes: [] };
-  if (isConst(ast)) return { status: EXACT, text: 'немає', markers };
+  if (isConst(ast)) return { status: EXACT, text: tr('a.none'), markers };
   const per = periodicInfo(ast);
   if (per) {
-    if (per.fn === 'sin' || per.fn === 'cos') return { status: EXACT, text: 'немає', markers };
+    if (per.fn === 'sin' || per.fn === 'cos') return { status: EXACT, text: tr('a.none'), markers };
     const F = family(((per.fn === 'tan' ? PI / 2 : 0) - per.b) / per.a, PI / Math.abs(per.a));
     markers.vfamilies.push(F);
-    return { status: EXACT, text: `вертикальні: x = ${familyText(F)}`, markers };
+    return { status: EXACT, text: tr('a.vertMany', { list: `x = ${familyText(F)}` }), markers };
   }
   const R = normRational(toRational(ast));
   if (R) {
@@ -1191,13 +1192,13 @@ function analyzeAsymptotes(ast, f, dom) {
   for (const F of dom.families) {
     if ([F.x0, F.x0 + F.T].every((c) => growsUnbounded(f, c, -1) || growsUnbounded(f, c, 1))) {
       markers.vfamilies.push(F);
-      parts.push(`вертикальні: x = ${familyText(F)}`);
+      parts.push(tr('a.vertMany', { list: `x = ${familyText(F)}` }));
       status = NUMERIC;
     }
   }
   if (vs.length) {
     status = NUMERIC;
-    parts.push(`вертикальн${vs.length > 1 ? 'і' : 'а'}: ${vs.map((x) => eqApprox('x', x)).join(', ')}`);
+    parts.push(tr(vs.length > 1 ? 'a.vertMany' : 'a.vertOne', { list: vs.map((x) => eqApprox('x', x)).join(', ') }));
     markers.vlines.push(...vs);
   }
 
@@ -1222,11 +1223,11 @@ function analyzeAsymptotes(ast, f, dom) {
   const textOf = (L) => {
     if (L.kind === 'h') {
       const pi = L.y !== 0 ? formatPiMultiple(L.y) : null;
-      if (L.exact) return `горизонтальна: ${pi ? `y = ${pi}` : eqApprox('y', L.y)}`;
+      if (L.exact) return tr('a.horiz', { eq: pi ? `y = ${pi}` : eqApprox('y', L.y) });
       const d = describeNumber(L.y, { tol: 1e-6 });
-      return `горизонтальна: y ${d.exact ? '=' : '≈'} ${d.text}`;
+      return tr('a.horiz', { eq: `y ${d.exact ? '=' : '≈'} ${d.text}` });
     }
-    return `похила: y ≈ ${lineText(L.k, L.b).replace(/≈ /g, '')}`;
+    return tr('a.oblique', { eq: `y ≈ ${lineText(L.k, L.b).replace(/≈ /g, '')}` });
   };
   const same = sides[1] && sides[-1] && sides[1].kind === sides[-1].kind
     && Math.abs((sides[1].y ?? sides[1].b) - (sides[-1].y ?? sides[-1].b)) < 1e-9
@@ -1241,7 +1242,7 @@ function analyzeAsymptotes(ast, f, dom) {
   return {
     status,
     text: joinAsymptotes(parts),
-    note: status === NUMERIC ? 'Частину висновків отримано чисельно (перевірка поведінки функції біля меж і на нескінченності).' : null,
+    note: status === NUMERIC ? tr('a.asymNote') : null,
     markers,
   };
 }
@@ -1263,15 +1264,15 @@ export function analyzeFunction(parsed) {
   const asym = analyzeAsymptotes(ast, f, dom);
 
   const sections = [
-    { key: 'domain', title: 'Область визначення', status: domain.status, text: domain.text, note: domain.note },
-    { key: 'zeros', title: 'Нулі функції', status: zeros.status, text: zeros.text, note: zeros.note },
-    { key: 'yint', title: 'Перетин з віссю Oy', status: yint.status, text: yint.text, note: yint.note },
-    { key: 'inc', title: 'Зростає', status: mono.status, text: mono.inc, note: mono.note },
-    { key: 'dec', title: 'Спадає', status: mono.status, text: mono.dec },
-    ...(mono.flat ? [{ key: 'flat', title: 'Стала', status: mono.status, text: mono.flat }] : []),
-    { key: 'extrema', title: 'Екстремуми', status: mono.status, text: mono.extrema },
-    { key: 'parity', title: 'Парність', status: parity.status, text: parity.text, note: parity.note },
-    { key: 'asym', title: 'Асимптоти', status: asym.status, text: asym.text, note: asym.note },
+    { key: 'domain', title: tr('a.t.domain'), status: domain.status, text: domain.text, note: domain.note },
+    { key: 'zeros', title: tr('a.t.zeros'), status: zeros.status, text: zeros.text, note: zeros.note },
+    { key: 'yint', title: tr('a.t.yint'), status: yint.status, text: yint.text, note: yint.note },
+    { key: 'inc', title: tr('a.t.inc'), status: mono.status, text: mono.inc, note: mono.note },
+    { key: 'dec', title: tr('a.t.dec'), status: mono.status, text: mono.dec },
+    ...(mono.flat ? [{ key: 'flat', title: tr('a.t.flat'), status: mono.status, text: mono.flat }] : []),
+    { key: 'extrema', title: tr('a.t.extrema'), status: mono.status, text: mono.extrema },
+    { key: 'parity', title: tr('a.t.parity'), status: parity.status, text: parity.text, note: parity.note },
+    { key: 'asym', title: tr('a.t.asym'), status: asym.status, text: asym.text, note: asym.note },
   ];
 
   const markers = {

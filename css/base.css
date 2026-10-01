@@ -79,6 +79,11 @@ button:disabled {
   top: var(--space-2);
 }
 
+/* пока JS не применил сохранённую мову, не показываем текст на другой */
+.i18n-pending .app {
+  visibility: hidden;
+}
+
 .mono {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;

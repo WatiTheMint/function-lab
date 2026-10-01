@@ -2,9 +2,10 @@
 // Умеет отдавать точки для показа на графике.
 
 import { parseConstant } from '../core/FunctionParser.js';
-import { formatNumber, plural, roundTo, tickDecimals } from '../core/format.js';
+import { formatNumber, roundTo, tickDecimals } from '../core/format.js';
 import { h, clear, nextId } from './dom.js';
 import { icon } from './icons.js';
+import { tr, trp } from '../i18n/i18n.js';
 
 export const MAX_ROWS = 201;
 
@@ -29,12 +30,13 @@ export function formatTableValue(y) {
 export class ValueTable {
   /**
    * @param {{ onChange?: (state) => void, onHoverRow?: (x:number|null) => void }} hooks
+   * @param {{ range?: object, showPoints?: boolean }} state — состояние прежней таблицы (при перестройке панели)
    */
-  constructor(hooks = {}) {
+  constructor(hooks = {}, state = {}) {
     this.hooks = hooks;
     this.item = null;
-    this.range = { start: -3, end: 3, step: 1 };
-    this.showPoints = false;
+    this.range = state.range ?? { start: -3, end: 3, step: 1 };
+    this.showPoints = state.showPoints ?? false;
     this.rows = [];
     const id = nextId('vt');
 
@@ -56,13 +58,13 @@ export class ValueTable {
     this.toggleBtn = h('button', {
       type: 'button',
       class: 'btn btn-block',
-      'aria-pressed': 'false',
+      'aria-pressed': String(this.showPoints),
       onClick: () => this.setShowPoints(!this.showPoints),
-    }, icon('dot', 16), h('span', {}, 'Показати точки на графіку'));
-    this.tableWrap = h('div', { class: 'table-wrap', tabindex: '0', role: 'region', 'aria-label': 'Таблиця значень' });
+    }, icon('dot', 16), h('span', {}, this.showPoints ? tr('vt.hidePoints') : tr('vt.showPoints')));
+    this.tableWrap = h('div', { class: 'table-wrap', tabindex: '0', role: 'region', 'aria-label': tr('common.valueTable') });
 
     this.el = h('div', { class: 'section' },
-      h('div', { class: 'range-grid' }, field('start', 'Початок'), field('end', 'Кінець'), field('step', 'Крок')),
+      h('div', { class: 'range-grid' }, field('start', tr('vt.start')), field('end', tr('vt.end')), field('step', tr('vt.step'))),
       this.error,
       this.toggleBtn,
       this.tableWrap,
@@ -79,13 +81,13 @@ export class ValueTable {
     for (const key of ['start', 'end', 'step']) {
       const res = parseConstant(this[`${key}Input`].value);
       this[`${key}Input`].setAttribute('aria-invalid', res.ok ? 'false' : 'true');
-      if (!res.ok) return this.fail(`«${this[`${key}Input`].value || 'порожньо'}» — не число`);
+      if (!res.ok) return this.fail(tr('vt.notNumber', { value: this[`${key}Input`].value || tr('vt.empty') }));
       vals[key] = res.value;
     }
-    if (!(vals.step > 0)) return this.fail('Крок має бути більшим за нуль');
-    if (vals.end < vals.start) return this.fail('Кінець діапазону має бути не меншим за початок');
+    if (!(vals.step > 0)) return this.fail(tr('vt.stepPositive'));
+    if (vals.end < vals.start) return this.fail(tr('vt.endBeforeStart'));
     const count = Math.floor((vals.end - vals.start) / vals.step + 1e-9) + 1;
-    if (count > MAX_ROWS) return this.fail(`Вийде ${count} ${plural(count, 'рядок', 'рядки', 'рядків')} — це забагато. Збільште крок або звузьте діапазон (максимум ${MAX_ROWS}).`);
+    if (count > MAX_ROWS) return this.fail(tr('vt.tooMany', { count, rows: trp('pl.rows', count), max: MAX_ROWS }));
     this.error.textContent = '';
     this.range = vals;
     this.render();
@@ -101,7 +103,7 @@ export class ValueTable {
   setShowPoints(on) {
     this.showPoints = on;
     this.toggleBtn.setAttribute('aria-pressed', String(on));
-    this.toggleBtn.querySelector('span').textContent = on ? 'Сховати точки на графіку' : 'Показати точки на графіку';
+    this.toggleBtn.querySelector('span').textContent = on ? tr('vt.hidePoints') : tr('vt.showPoints');
     this.hooks.onChange?.();
   }
 
@@ -123,10 +125,10 @@ export class ValueTable {
         onMouseleave: () => this.hooks.onHoverRow?.(null),
       },
       h('td', {}, formatNumber(r.x, { decimals: 6 })),
-      text === null ? h('td', { class: 'is-undefined' }, 'не визначено') : h('td', {}, text));
+      text === null ? h('td', { class: 'is-undefined' }, tr('val.undefined')) : h('td', {}, text));
     }));
     this.tableWrap.append(h('table', { class: 'value-table' },
-      h('caption', {}, `${this.rows.length} ${plural(this.rows.length, 'рядок', 'рядки', 'рядків')} · значення округлено до 4 знаків, «≈» — значення неточне`),
+      h('caption', {}, tr('vt.caption', { count: this.rows.length, rows: trp('pl.rows', this.rows.length) })),
       h('thead', {}, h('tr', {}, h('th', { scope: 'col' }, 'x'), h('th', { scope: 'col' }, 'f(x)'))),
       tbody));
   }

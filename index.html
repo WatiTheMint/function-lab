@@ -17,112 +17,122 @@
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/math.css">
   <script>
-    // Тема до першого малювання — без «спалаху» світлого фону.
+    // Тема і мова до першого малювання: без «спалаху» світлого фону та тексту не тією мовою.
     (function () {
-      var pref = 'system';
-      try { pref = JSON.parse(localStorage.getItem('fl.theme')) || 'system'; } catch (e) {}
+      var root = document.documentElement;
+      var read = function (key, fallback) {
+        try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch (e) { return fallback; }
+      };
+      var pref = read('fl.theme', 'system');
       var dark = pref === 'dark' || (pref === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
-      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      root.dataset.theme = dark ? 'dark' : 'light';
+      var lang = read('fl.lang', 'uk');
+      if (lang !== 'uk') {
+        root.lang = lang;
+        root.classList.add('i18n-pending');
+        setTimeout(function () { root.classList.remove('i18n-pending'); }, 2000); // если JS не загрузится
+      }
     })();
   </script>
   <script type="module" src="js/main.js"></script>
 </head>
 <body>
-  <a class="skip-link" href="#plane">До координатної площини</a>
+  <a class="skip-link" href="#plane" data-i18n="app.skip">До координатної площини</a>
 
   <div class="app">
     <header class="topbar">
-      <a class="brand" href="#graph" aria-label="Function Lab — Лабораторія функцій, на головний екран">
+      <a class="brand" href="#graph" data-i18n-attr="aria-label:app.home" aria-label="Function Lab — Лабораторія функцій, на головний екран">
         <span class="brand-mark" aria-hidden="true">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3v17h17"/><path d="M6.5 17C9 7 11.5 5.5 13.5 10s4.5 3.5 6.5-4"/></svg>
         </span>
         <span class="brand-text">
           <span class="brand-name">Function Lab</span>
-          <span class="brand-sub">Лабораторія функцій</span>
+          <span class="brand-sub" data-i18n="app.subtitle">Лабораторія функцій</span>
         </span>
       </a>
 
-      <nav class="segmented modes" role="tablist" aria-label="Режими">
-        <button type="button" role="tab" id="tab-graph" data-mode="graph" aria-controls="workspace" aria-label="Графік" title="Побудова графіків"><span data-icon="modeGraph"></span><span>Графік</span></button>
-        <button type="button" role="tab" id="tab-fx" data-mode="fx" aria-controls="workspace" aria-label="f(x)" title="Значення функції f(x)"><span data-icon="modeFx"></span><span>f(x)</span></button>
-        <button type="button" role="tab" id="tab-test" data-mode="test" aria-controls="workspace" aria-label="Це функція?" title="Чи є графік функцією"><span data-icon="modeTest"></span><span>Це функція?</span></button>
-        <button type="button" role="tab" id="tab-train" data-mode="train" aria-controls="workspace" aria-label="Тренування" title="Тренування"><span data-icon="modeTrain"></span><span>Тренування</span></button>
+      <nav class="segmented modes" role="tablist" aria-label="Режими" data-i18n-attr="aria-label:modes.group">
+        <button type="button" role="tab" id="tab-graph" data-mode="graph" aria-controls="workspace" data-i18n-attr="aria-label:mode.graph,title:mode.graph.title"><span data-icon="modeGraph"></span><span data-i18n="mode.graph">Графік</span></button>
+        <button type="button" role="tab" id="tab-fx" data-mode="fx" aria-controls="workspace" data-i18n-attr="aria-label:mode.fx,title:mode.fx.title"><span data-icon="modeFx"></span><span data-i18n="mode.fx">f(x)</span></button>
+        <button type="button" role="tab" id="tab-test" data-mode="test" aria-controls="workspace" data-i18n-attr="aria-label:mode.test,title:mode.test.title"><span data-icon="modeTest"></span><span data-i18n="mode.test">Це функція?</span></button>
+        <button type="button" role="tab" id="tab-train" data-mode="train" aria-controls="workspace" data-i18n-attr="aria-label:mode.train,title:mode.train"><span data-icon="modeTrain"></span><span data-i18n="mode.train">Тренування</span></button>
       </nav>
 
       <div class="topbar-actions">
-        <button type="button" class="icon-btn" id="help-btn" aria-label="Довідка: синтаксис формул і клавіші" title="Довідка"><span data-icon="help"></span></button>
-        <button type="button" class="icon-btn" id="theme-btn" aria-label="Перемкнути тему" title="Тема"><span data-icon="moon"></span></button>
+        <div class="segmented lang-switch" id="lang-switch" role="group" data-i18n-attr="aria-label:lang.group"></div>
+        <button type="button" class="icon-btn" id="help-btn" data-i18n-attr="aria-label:help.open,title:help.short"><span data-icon="help"></span></button>
+        <button type="button" class="icon-btn" id="theme-btn" data-i18n-attr="aria-label:theme.toggle,title:theme.short"><span data-icon="moon"></span></button>
       </div>
     </header>
 
     <main class="workspace" id="workspace" role="tabpanel">
-      <aside class="panel panel-left" id="panel-left" aria-label="Інструменти режиму"></aside>
+      <aside class="panel panel-left" id="panel-left" data-i18n-attr="aria-label:panel.tools"></aside>
 
-      <section class="stage" aria-label="Координатна площина">
+      <section class="stage" data-i18n-attr="aria-label:plane.label">
         <div class="plane-wrap" id="plane-wrap">
-          <canvas id="plane" tabindex="0" role="img" aria-roledescription="координатна площина"
+          <canvas id="plane" tabindex="0" role="img" data-i18n-attr="aria-roledescription:plane.roledesc"
                   aria-describedby="plane-help plane-desc"></canvas>
           <div class="plane-overlay" id="plane-overlay"></div>
-          <div class="zoom-controls" role="group" aria-label="Масштаб">
-            <button type="button" class="icon-btn" id="zoom-in" aria-label="Наблизити" title="Наблизити (+)"><span data-icon="plus"></span></button>
-            <button type="button" class="icon-btn" id="zoom-out" aria-label="Віддалити" title="Віддалити (−)"><span data-icon="minus"></span></button>
-            <button type="button" class="icon-btn" id="zoom-reset" aria-label="Скинути масштаб" title="Скинути масштаб (0)"><span data-icon="reset"></span></button>
+          <div class="zoom-controls" role="group" data-i18n-attr="aria-label:zoom.group">
+            <button type="button" class="icon-btn" id="zoom-in" data-i18n-attr="aria-label:zoom.in,title:zoom.inTitle"><span data-icon="plus"></span></button>
+            <button type="button" class="icon-btn" id="zoom-out" data-i18n-attr="aria-label:zoom.out,title:zoom.outTitle"><span data-icon="minus"></span></button>
+            <button type="button" class="icon-btn" id="zoom-reset" data-i18n-attr="aria-label:zoom.reset,title:zoom.resetTitle"><span data-icon="reset"></span></button>
           </div>
           <div class="coord-chip" id="coord-chip" aria-hidden="true"></div>
-          <p class="sr-only" id="plane-help">Перетягуйте площину мишею або пальцем, коліщатко миші або щипок — масштаб. З клавіатури: стрілки — зсув, плюс і мінус — масштаб, нуль — скинути.</p>
+          <p class="sr-only" id="plane-help" data-i18n="plane.help"></p>
           <p class="sr-only" id="plane-desc" aria-live="polite"></p>
         </div>
         <div class="stage-footer" id="stage-footer"></div>
       </section>
 
-      <aside class="panel panel-right" id="panel-right" aria-label="Інформація"></aside>
+      <aside class="panel panel-right" id="panel-right" data-i18n-attr="aria-label:panel.info"></aside>
     </main>
   </div>
 
   <dialog class="dialog" id="help-dialog" aria-labelledby="help-title">
     <div class="dialog-head">
-      <h2 id="help-title">Довідка</h2>
-      <button type="button" class="icon-btn is-quiet" data-close aria-label="Закрити довідку"><span data-icon="x"></span></button>
+      <h2 id="help-title" data-i18n="help.title">Довідка</h2>
+      <button type="button" class="icon-btn is-quiet" data-close data-i18n-attr="aria-label:help.close"><span data-icon="x"></span></button>
     </div>
     <div class="dialog-body">
       <section>
-        <h3>Як записувати формули</h3>
+        <h3 data-i18n="help.formulas"></h3>
         <table class="ref-table">
           <tbody>
-            <tr><td>x^2, x², x^(1/3)</td><td>степінь; дробовий степінь від’ємного числа рахується по-шкільному: (−8)^(1/3) = −2</td></tr>
-            <tr><td>2x, 3(x+1), x sin x</td><td>знак множення можна пропускати</td></tr>
-            <tr><td>1/x, (x+1)/(x−1)</td><td>дроби; дужки обов’язкові, якщо в знаменнику сума</td></tr>
-            <tr><td>sqrt(x), √x, cbrt(x)</td><td>квадратний і кубічний корінь</td></tr>
-            <tr><td>|x − 2|, abs(x)</td><td>модуль</td></tr>
-            <tr><td>sin, cos, tg, ctg</td><td>тригонометрія (аргумент у радіанах): sin x, sin(2x), sin²x</td></tr>
-            <tr><td>arcsin, arccos, arctg</td><td>обернені тригонометричні</td></tr>
-            <tr><td>e^x, exp(x)</td><td>експонента</td></tr>
-            <tr><td>ln x, lg x, log_2(x)</td><td>натуральний, десятковий, за основою 2</td></tr>
-            <tr><td>pi, π, e</td><td>константи</td></tr>
-            <tr><td>2,5 або 2.5</td><td>десятковий дріб — з комою або з крапкою</td></tr>
-            <tr><td>floor(x), sign(x)</td><td>ціла частина і знак числа</td></tr>
+            <tr><td>x^2, x², x^(1/3)</td><td data-i18n="help.f.pow"></td></tr>
+            <tr><td>2x, 3(x+1), x sin x</td><td data-i18n="help.f.mul"></td></tr>
+            <tr><td>1/x, (x+1)/(x−1)</td><td data-i18n="help.f.frac"></td></tr>
+            <tr><td>sqrt(x), √x, cbrt(x)</td><td data-i18n="help.f.root"></td></tr>
+            <tr><td>|x − 2|, abs(x)</td><td data-i18n="help.f.abs"></td></tr>
+            <tr><td>sin, cos, tg, ctg</td><td data-i18n="help.f.trig"></td></tr>
+            <tr><td>arcsin, arccos, arctg</td><td data-i18n="help.f.atrig"></td></tr>
+            <tr><td>e^x, exp(x)</td><td data-i18n="help.f.exp"></td></tr>
+            <tr><td>ln x, lg x, log_2(x)</td><td data-i18n="help.f.log"></td></tr>
+            <tr><td>pi, π, e</td><td data-i18n="help.f.const"></td></tr>
+            <tr><td data-i18n="help.f.decimalCode"></td><td data-i18n="help.f.decimal"></td></tr>
+            <tr><td>floor(x), sign(x)</td><td data-i18n="help.f.floor"></td></tr>
           </tbody>
         </table>
       </section>
       <section>
-        <h3>Клавіші</h3>
+        <h3 data-i18n="help.keys"></h3>
         <table class="ref-table">
           <tbody>
-            <tr><td>← ↑ → ↓</td><td>зсув площини (коли вона у фокусі); із Shift — швидше</td></tr>
-            <tr><td>+ / −</td><td>наблизити / віддалити</td></tr>
-            <tr><td>0</td><td>скинути масштаб</td></tr>
-            <tr><td>← / → на ручці x</td><td>режим f(x): крок по x; із Shift — у 10 разів більший</td></tr>
-            <tr><td>Т або 1 · Н або 2</td><td>«Це функція?»: відповісти «так» / «ні»; Enter — наступний графік</td></tr>
-            <tr><td>Delete</td><td>тренування за точками: видалити вибрану точку</td></tr>
+            <tr><td>← ↑ → ↓</td><td data-i18n="help.k.arrows"></td></tr>
+            <tr><td>+ / −</td><td data-i18n="help.k.zoom"></td></tr>
+            <tr><td>0</td><td data-i18n="help.k.reset"></td></tr>
+            <tr><td data-i18n="help.k.handleCode"></td><td data-i18n="help.k.handle"></td></tr>
+            <tr><td data-i18n="help.k.testCode"></td><td data-i18n="help.k.test"></td></tr>
+            <tr><td>Delete</td><td data-i18n="help.k.delete"></td></tr>
           </tbody>
         </table>
       </section>
       <section>
-        <h3>Чесний аналіз</h3>
-        <p class="small muted">Мітка <span class="badge badge-exact">точно</span> — властивість знайдено аналітично. <span class="badge badge-numeric">≈ чисельно</span> — знайдено чисельно на обмеженому відрізку, це оцінка. <span class="badge badge-unknown">не вдалося</span> — автоматично визначити не можна, і програма так і каже.</p>
+        <h3 data-i18n="help.honest"></h3>
+        <p class="small muted" data-i18n-html="help.honestText"></p>
       </section>
       <section>
-        <button type="button" class="btn" id="hints-reset"><span data-icon="bulb"></span>Знову показати приховані підказки</button>
+        <button type="button" class="btn" id="hints-reset"><span data-icon="bulb"></span><span data-i18n="help.hintsReset"></span></button>
       </section>
     </div>
   </dialog>

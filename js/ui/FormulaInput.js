@@ -3,6 +3,7 @@
 
 import { parseFunction } from '../core/FunctionParser.js';
 import { h, nextId } from './dom.js';
+import { tr } from '../i18n/i18n.js';
 
 const ERROR_DELAY = 900;
 
@@ -31,7 +32,7 @@ export class FormulaInput {
    * @param {boolean} [o.keys] — показать ряд кнопок-вставок (удобно на телефоне)
    * @param {() => void} [o.onCancel] — Esc
    */
-  constructor({ label, prefix = 'y =', value = '', placeholder = 'наприклад, x^2 − 4', submitLabel = null, onSubmit, keys = false, onCancel = null, visibleLabel = false }) {
+  constructor({ label, prefix = 'y =', value = '', placeholder = tr('fi.placeholder'), submitLabel = null, onSubmit, keys = false, onCancel = null, visibleLabel = false }) {
     this.onSubmit = onSubmit;
     this.onCancel = onCancel;
     this.prefix = prefix || 'y =';
@@ -79,11 +80,11 @@ export class FormulaInput {
   }
 
   renderKeys() {
-    return h('div', { class: 'math-keys', role: 'group', 'aria-label': 'Вставити у формулу' },
+    return h('div', { class: 'math-keys', role: 'group', 'aria-label': tr('fi.keysGroup') },
       MATH_KEYS.map((k) => h('button', {
         type: 'button',
         class: 'math-key',
-        'aria-label': `Вставити ${k.label}`,
+        'aria-label': tr('fi.insert', { label: k.label }),
         onClick: () => this.insert(k.insert, k.close ?? ''),
       }, k.label)));
   }
@@ -149,7 +150,7 @@ export class FormulaInput {
     this.input.setAttribute('aria-invalid', state?.error ? 'true' : 'false');
     if (!state) fb.textContent = '';
     else if (state.error) fb.textContent = state.error;
-    else fb.innerHTML = `<span class="sr-only">Розпізнано: </span><span class="math-lhs" aria-hidden="true">${this.prefix}</span><span class="math">${state.html}</span>`;
+    else fb.innerHTML = `<span class="sr-only">${tr('fi.recognized')}</span><span class="math-lhs" aria-hidden="true">${this.prefix}</span><span class="math">${state.html}</span>`;
   }
 
   showError(error) {

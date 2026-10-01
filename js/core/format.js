@@ -2,6 +2,8 @@
 // Русская запись: десятичная запятая, типографский минус «−», точки как (3; 11).
 // Ни одна функция здесь не возвращает строки "NaN" или "Infinity".
 
+import { pluralIndex, tr } from '../i18n/i18n.js';
+
 export const MINUS = '−';
 
 const SUPERSCRIPT = {
@@ -48,8 +50,8 @@ export function formatNumber(v, { decimals = 4 } = {}) {
 
 /** Значение функции для показа пользователю: всегда осмысленная строка. */
 export function formatValue(v, opts) {
-  if (Number.isNaN(v)) return 'не визначено';
-  if (!Number.isFinite(v)) return 'занадто велике';
+  if (Number.isNaN(v)) return tr('val.undefined');
+  if (!Number.isFinite(v)) return tr('val.tooLarge');
   return formatNumber(v, opts);
 }
 
@@ -132,12 +134,7 @@ export function formatTick(v, step) {
   return formatNumber(v, { decimals: Math.min(10, tickDecimals(step)) });
 }
 
-/** Склонение: plural(3, 'точка', 'точки', 'точек'). */
+/** Склонение: plural(3, 'точка', 'точки', 'точек') → «точки». Правило общее для uk и ru. */
 export function plural(n, one, few, many) {
-  const a = Math.abs(n) % 100;
-  const b = a % 10;
-  if (a > 10 && a < 20) return many;
-  if (b > 1 && b < 5) return few;
-  if (b === 1) return one;
-  return many;
+  return [one, few, many][pluralIndex(n)];
 }

@@ -15,7 +15,6 @@ const inner = (h) => (h === 0 ? 'x' : `x ${h > 0 ? '-' : '+'} ${Math.abs(h)}`);
 /** Семейства: gen — случайные параметры, src — формула, mutate — «типичные ошибки». */
 export const FAMILIES = {
   linear: {
-    name: 'лінійна функція',
     gen: () => ({ k: pick([-3, -2, -1, -0.5, 0.5, 1, 2, 3]), b: rnd(-4, 4) }),
     src: ({ k, b }) => `${coef(k)}x${tail(b)}`,
     mutate: [
@@ -27,7 +26,6 @@ export const FAMILIES = {
     ],
   },
   parabola: {
-    name: 'квадратична функція',
     gen: () => ({ a: pick([1, -1]), h: rnd(-3, 3), k: rnd(-4, 4) }),
     src: ({ a, h, k }) => `${coef(a)}${shift(h)}^2${tail(k)}`,
     mutate: [
@@ -39,7 +37,6 @@ export const FAMILIES = {
     ],
   },
   abs: {
-    name: 'функція з модулем',
     gen: () => ({ a: pick([1, -1]), h: rnd(-3, 3), k: rnd(-3, 3) }),
     src: ({ a, h, k }) => `${coef(a)}|${inner(h)}|${tail(k)}`,
     mutate: [
@@ -50,7 +47,6 @@ export const FAMILIES = {
     ],
   },
   sqrt: {
-    name: 'функція з коренем',
     gen: () => ({ a: pick([1, -1]), h: rnd(-4, 2), k: rnd(-3, 3) }),
     src: ({ a, h, k }) => `${coef(a)}sqrt(${inner(h)})${tail(k)}`,
     mutate: [
@@ -61,7 +57,6 @@ export const FAMILIES = {
     ],
   },
   hyperbola: {
-    name: 'обернена пропорційність',
     gen: () => ({ k: pick([1, 2, 4, -1, -2, -4]), h: rnd(-2, 2), c: rnd(-2, 2) }),
     src: ({ k, h, c }) => `${k}/${h === 0 ? 'x' : `(${inner(h)})`}${tail(c)}`,
     mutate: [
@@ -72,7 +67,6 @@ export const FAMILIES = {
     ],
   },
   cubic: {
-    name: 'кубічна функція',
     gen: () => ({ a: pick([1, -1]), h: rnd(-2, 2), k: rnd(-3, 3) }),
     src: ({ a, h, k }) => `${coef(a)}${shift(h)}^3${tail(k)}`,
     mutate: [
@@ -82,7 +76,6 @@ export const FAMILIES = {
     ],
   },
   exp: {
-    name: 'показникова функція',
     gen: () => ({ b: pick([2, 0.5]), c: rnd(-3, 2) }),
     src: ({ b, c }) => `${b}^x${tail(c)}`,
     mutate: [
@@ -98,7 +91,7 @@ function make(familyKey, params) {
   const source = fam.src(params);
   const parsed = parseFunction(source);
   if (!parsed.ok) throw new Error(`Bad task source: ${source}`);
-  return { family: familyKey, familyName: fam.name, params, source, parsed };
+  return { family: familyKey, params, source, parsed };
 }
 
 /** Задание для построения по точкам: значения в целых x удобные, вершина видна. */
