@@ -55,51 +55,51 @@ const FUNCTION_SHAPES = {
   parabola: () => {
     const a = pick([1, -1, 0.5, -0.5]);
     const h = rnd(-3, 3), k = rnd(-3, 3);
-    return fnShape(src(a, `${shiftSrc(h)}^2`, k), 'Парабола', 'Ветви параболы y = a(x − h)² + k направлены вверх или вниз — каждому x соответствует ровно одно значение y.');
+    return fnShape(src(a, `${shiftSrc(h)}^2`, k), 'Парабола', 'Гілки параболи y = a(x − h)² + k напрямлені вгору або вниз — кожному x відповідає рівно одне значення y.');
   },
   line: () => {
     const k = pick([-2, -1, -0.5, 0.5, 1, 2, 3]), b = rnd(-4, 4);
-    return fnShape(`${k}x ${b >= 0 ? '+' : '-'} ${Math.abs(b)}`, 'Прямая', 'Невертикальная прямая y = kx + b — график линейной функции.');
+    return fnShape(`${k}x ${b >= 0 ? '+' : '-'} ${Math.abs(b)}`, 'Пряма', 'Невертикальна пряма y = kx + b — графік лінійної функції.');
   },
   abs: () => {
     const a = pick([1, -1, 2, 0.5]);
     const h = rnd(-3, 3), k = rnd(-3, 2);
-    return fnShape(src(a, `|x ${h >= 0 ? '-' : '+'} ${Math.abs(h)}|`, k), 'Модуль («галочка»)', 'У графика y = |x| есть излом, но над каждым x лежит только одна точка.');
+    return fnShape(src(a, `|x ${h >= 0 ? '-' : '+'} ${Math.abs(h)}|`, k), 'Модуль («галочка»)', 'Графік y = |x| має злам, але над кожним x лежить лише одна точка.');
   },
   cubic: () => {
     const b = pick([-3, -2, 0, 1]);
-    return fnShape(`0.25x^3 ${b >= 0 ? '+' : '-'} ${Math.abs(b) * 0.5}x`, 'Кубическая парабола', 'Кубическая функция может «петлять» вверх-вниз, но не возвращается назад по x.');
+    return fnShape(`0.25x^3 ${b >= 0 ? '+' : '-'} ${Math.abs(b) * 0.5}x`, 'Кубічна парабола', 'Кубічна функція може «петляти» вгору-вниз, але не повертається назад по x.');
   },
   sine: () => {
     const A = pick([1, 2, 3]), k = pick([0.5, 1, 2]);
-    return fnShape(`${A}sin(${k}x)`, 'Синусоида', 'Синусоида бесконечно колеблется, но каждому x соответствует одно значение sin x.');
+    return fnShape(`${A}sin(${k}x)`, 'Синусоїда', 'Синусоїда нескінченно коливається, але кожному x відповідає одне значення sin x.');
   },
   sqrt: () => {
     const h = rnd(-6, 1), k = rnd(-3, 2);
-    return fnShape(src(1, `sqrt(${shiftSrc(h)})`, k), 'Ветвь корня', 'Функция y = √x определена только при x ≥ 0 — левее графика нет, и это нормально.');
+    return fnShape(src(1, `sqrt(${shiftSrc(h)})`, k), 'Гілка кореня', 'Функція y = √x визначена лише при x ≥ 0 — лівіше графіка немає, і це нормально.');
   },
   hyperbola: () => {
     const k = pick([1, 2, 4, -1, -2, -4]);
-    return fnShape(`${k}/x`, 'Гипербола', 'Гипербола y = k/x состоит из двух ветвей, но они лежат над разными x.');
+    return fnShape(`${k}/x`, 'Гіпербола', 'Гіпербола y = k/x складається з двох гілок, але вони лежать над різними x.');
   },
   exponent: () => {
     const b = pick([2, 0.5]), c = rnd(-3, 1);
-    return fnShape(`${b}^x ${c >= 0 ? '+' : '-'} ${Math.abs(c)}`, 'Показательная функция', 'Показательная функция y = aˣ определена при всех x и принимает одно значение.');
+    return fnShape(`${b}^x ${c >= 0 ? '+' : '-'} ${Math.abs(c)}`, 'Показникова функція', 'Показникова функція y = aˣ визначена при всіх x і набуває одного значення.');
   },
   horizontal: () => {
     const c = rnd(-4, 4);
-    return fnShape(`${c}`, 'Горизонтальная прямая', 'Горизонтальная прямая y = c — тоже функция: каждому x соответствует одно и то же значение c.');
+    return fnShape(`${c}`, 'Горизонтальна пряма', 'Горизонтальна пряма y = c — теж функція: кожному x відповідає одне й те саме значення c.');
   },
   semicircle: () => {
     const R = pick([3, 4, 5]);
-    const shape = fnShape(`sqrt(${R * R} - x^2)`, 'Верхняя полуокружность', `Полуокружность y = √(${R * R} − x²) — функция: вертикальная прямая пересекает её не больше одного раза. Целая окружность — уже нет.`);
+    const shape = fnShape(`sqrt(${R * R} - x^2)`, 'Верхнє півколо', `Півколо y = √(${R * R} − x²) — функція: вертикальна пряма перетинає його не більше одного разу. Ціле коло — вже ні.`);
     shape.specialXs = [-R, R, 0];
     return shape;
   },
   points: () => {
     const xs = shuffle([-6, -4, -3, -1, 0, 2, 3, 5, 7]).slice(0, 7).sort((p, q) => p - q);
     const pts = xs.map((x) => ({ x, y: rnd(-5, 5) }));
-    return pointsShape(pts, 'Набор точек', 'Отдельные точки тоже могут задавать функцию — если у всех точек разные x.');
+    return pointsShape(pts, 'Набір точок', 'Окремі точки теж можуть задавати функцію — якщо в усіх точок різні x.');
   },
   piecewise: () => {
     const c = rnd(-2, 2), y1 = rnd(-4, 0), y2 = rnd(1, 4);
@@ -111,9 +111,9 @@ const NONFUNCTION_SHAPES = {
   vertical: () => {
     const c = pick([-5, -3, -2, 1, 2, 3, 4]);
     return {
-      title: 'Вертикальная прямая',
+      title: 'Вертикальна пряма',
       equation: math(`${V('x')}${op('=')}<span class="m-n">${n(c)}</span>`),
-      note: `Прямая x = ${n(c)}: одному значению x соответствует бесконечно много значений y.`,
+      note: `Пряма x = ${n(c)}: одному значенню x відповідає нескінченно багато значень y.`,
       specialXs: [c],
       intersect: (x) => (Math.abs(x - c) < 1e-9 ? 'all' : []),
       draw: (r, style) => r.drawVLine(c, { width: 2.6, ...style }),
@@ -123,9 +123,9 @@ const NONFUNCTION_SHAPES = {
     const R = pick([2, 3, 4, 5]);
     const a = R >= 5 ? 0 : rnd(-3, 3), b = R >= 4 ? 0 : rnd(-2, 2);
     return {
-      title: 'Окружность',
+      title: 'Коло',
       equation: math(`${shifted('x', a)}${sup2}${op('+')}${shifted('y', b)}${sup2}${op('=')}<span class="m-n">${R * R}</span>`),
-      note: 'Окружность нельзя задать одной формулой y = f(x): над каждой внутренней точкой диаметра лежат две её точки.',
+      note: 'Коло не можна задати однією формулою y = f(x): над кожною внутрішньою точкою діаметра лежать дві його точки.',
       specialXs: [a],
       intersect: (x) => {
         const d = R * R - (x - a) ** 2;
@@ -140,9 +140,9 @@ const NONFUNCTION_SHAPES = {
   ellipse: () => {
     const A = pick([4, 5, 6]), B = pick([2, 3]);
     return {
-      title: 'Эллипс',
+      title: 'Еліпс',
       equation: math(`<span class="m-frac"><span class="m-fn">${V('x')}${sup2}</span><span class="m-fd"><span class="m-n">${A * A}</span></span></span>${op('+')}<span class="m-frac"><span class="m-fn">${V('y')}${sup2}</span><span class="m-fd"><span class="m-n">${B * B}</span></span></span>${op('=')}<span class="m-n">1</span>`),
-      note: 'Эллипс, как и окружность, — замкнутая кривая: вертикальная прямая через его середину пересекает его дважды.',
+      note: 'Еліпс, як і коло, — замкнена крива: вертикальна пряма через його середину перетинає його двічі.',
       specialXs: [0],
       intersect: (x) => {
         const d = 1 - (x / A) ** 2;
@@ -158,9 +158,9 @@ const NONFUNCTION_SHAPES = {
     const a = pick([0.5, 1, -0.5, -1]), k = rnd(-2, 2), h = rnd(-4, 2);
     const coef = a === 1 ? '' : a === -1 ? MINUS : `<span class="m-n">${n(a)}</span>`;
     return {
-      title: '«Лежачая» парабола',
+      title: '«Лежача» парабола',
       equation: math(`${V('x')}${op('=')}${coef}${shifted('y', k)}${sup2}${plusConst(h)}`),
-      note: 'Это парабола, повёрнутая на бок: x выражается через y, а одному x соответствуют два значения y.',
+      note: 'Це парабола, повернута на бік: x виражається через y, а одному x відповідають два значення y.',
       specialXs: [h + a * 4, h + a],
       intersect: (x) => {
         const d = (x - h) / a;
@@ -175,9 +175,9 @@ const NONFUNCTION_SHAPES = {
   sidewaysAbs: () => {
     const h = rnd(-4, 1);
     return {
-      title: '«Галочка» на боку',
+      title: '«Галочка» на боці',
       equation: math(`${V('x')}${op('=')}<span class="m-abs">|</span>${V('y')}<span class="m-abs">|</span>${plusConst(h)}`),
-      note: 'Повёрнутый график модуля: вправо от вершины над каждым x две точки — сверху и снизу.',
+      note: 'Повернутий графік модуля: праворуч від вершини над кожним x дві точки — зверху й знизу.',
       specialXs: [h + 3],
       intersect: (x) => {
         const d = x - h;
@@ -191,9 +191,9 @@ const NONFUNCTION_SHAPES = {
   hyperbolaLR: () => {
     const A = pick([1, 2, 3]);
     return {
-      title: 'Гипербола с «боковыми» ветвями',
+      title: 'Гіпербола з «боковими» гілками',
       equation: math(`<span class="m-frac"><span class="m-fn">${V('x')}${sup2}</span><span class="m-fd"><span class="m-n">${A * A}</span></span></span>${op(MINUS)}${V('y')}${sup2}${op('=')}<span class="m-n">1</span>`),
-      note: 'Ветви этой гиперболы открываются влево и вправо, поэтому над точками справа и слева их по две.',
+      note: 'Гілки цієї гіперболи відкриваються ліворуч і праворуч, тому над точками справа й зліва їх по дві.',
       specialXs: [A * 2, -A * 2],
       intersect: (x) => {
         const d = (x / A) ** 2 - 1;
@@ -211,9 +211,9 @@ const NONFUNCTION_SHAPES = {
   sidewaysSine: () => {
     const A = pick([2, 3]);
     return {
-      title: 'Синусоида на боку',
+      title: 'Синусоїда на боці',
       equation: math(`${V('x')}${op('=')}<span class="m-n">${A}</span><span class="m-f">sin</span>${V('y')}`),
-      note: 'Повёрнутая синусоида: одна вертикальная прямая пересекает её сразу во многих точках.',
+      note: 'Повернута синусоїда: одна вертикальна пряма перетинає її одразу в багатьох точках.',
       specialXs: [0, A / 2],
       intersect: (x) => {
         const s = x / A;
@@ -229,9 +229,9 @@ const NONFUNCTION_SHAPES = {
     };
   },
   sidewaysCubic: () => ({
-    title: 'Кубическая кривая на боку',
+    title: 'Кубічна крива на боці',
     equation: math(`${V('x')}${op('=')}<span class="m-frac"><span class="m-fn">${V('y')}<sup class="m-sup"><span class="m-n">3</span></sup>${op(MINUS)}<span class="m-n">3</span>${V('y')}</span><span class="m-fd"><span class="m-n">2</span></span></span>`),
-    note: 'Кривая делает «петлю» назад по x, поэтому между x = −1 и x = 1 над одним x лежат три её точки.',
+    note: 'Крива робить «петлю» назад по x, тому між x = −1 і x = 1 над одним x лежать три її точки.',
     specialXs: [0],
     intersect: (x) => realRoots([-2 * x, -3, 0, 1]),
     draw: (r, style) => r.plotParametric((t) => (t ** 3 - 3 * t) / 2, (t) => t, -4, 4, style),
@@ -243,7 +243,7 @@ const NONFUNCTION_SHAPES = {
     let y2 = rnd(-5, 5);
     if (y2 === dup.y) y2 = dup.y > 0 ? dup.y - 3 : dup.y + 3;
     pts.push({ x: dup.x, y: y2 });
-    return pointsShape(pts, 'Набор точек', `У двух точек одинаковый x = ${n(dup.x)}, но разные y — значит, это не функция.`);
+    return pointsShape(pts, 'Набір точок', `У двох точок однаковий x = ${n(dup.x)}, але різні y — отже, це не функція.`);
   },
   piecewiseBad: () => {
     const c = rnd(-2, 2), y1 = rnd(-4, 0), y2 = rnd(1, 4);
@@ -267,11 +267,11 @@ function pointsShape(pts, title, note) {
 function stepShape(c, y1, y2, bothClosed) {
   const cond1 = bothClosed ? '≤' : '<';
   return {
-    title: bothClosed ? 'Ступенька с двумя закрашенными концами' : 'Ступенька (кусочная функция)',
+    title: bothClosed ? 'Сходинка з двома зафарбованими кінцями' : 'Сходинка (кусково задана функція)',
     equation: `<span class="small">y = ${n(y1)} при x ${cond1} ${n(c)}; y = ${n(y2)} при x ≥ ${n(c)}</span>`,
     note: bothClosed
-      ? `Обе точки (${n(c)}; ${n(y1)}) и (${n(c)}; ${n(y2)}) закрашены — обе принадлежат графику, и при x = ${n(c)} получаются два значения y.`
-      : `Пустой кружок в точке (${n(c)}; ${n(y1)}) не принадлежит графику, поэтому при x = ${n(c)} точка одна — (${n(c)}; ${n(y2)}).`,
+      ? `Обидві точки (${n(c)}; ${n(y1)}) і (${n(c)}; ${n(y2)}) зафарбовані — обидві належать графіку, і при x = ${n(c)} виходять два значення y.`
+      : `Порожній кружечок у точці (${n(c)}; ${n(y1)}) не належить графіку, тому при x = ${n(c)} точка одна — (${n(c)}; ${n(y2)}).`,
     specialXs: [c],
     intersect: (x) => {
       if (x < c - 1e-9) return [y1];

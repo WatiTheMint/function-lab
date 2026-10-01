@@ -54,35 +54,35 @@ export class FormulaTask {
     clear(right);
     this.input = new FormulaInput({
       label: 'Твоя формула',
-      submitLabel: 'Проверить',
+      submitLabel: 'Перевірити',
       keys: true,
       onSubmit: (parsed) => this.check(parsed),
     });
     this.hintBox = h('div', { class: 'section', 'aria-live': 'polite' });
     left.append(
       h('div', { class: 'task-card' },
-        h('span', { class: 'task-label' }, 'Задание'),
-        h('p', {}, 'Какая функция изображена на плоскости? Запиши её формулу.')),
+        h('span', { class: 'task-label' }, 'Завдання'),
+        h('p', {}, 'Яку функцію зображено на площині? Запиши її формулу.')),
       this.input.el,
       h('div', { class: 'tool-row' },
-        h('button', { type: 'button', class: 'btn btn-sm', onClick: () => this.moreHints() }, icon('bulb', 14), 'Подсказка'),
-        h('button', { type: 'button', class: 'btn btn-sm btn-ghost', onClick: () => this.reveal() }, 'Показать ответ')),
+        h('button', { type: 'button', class: 'btn btn-sm', onClick: () => this.moreHints() }, icon('bulb', 14), 'Підказка'),
+        h('button', { type: 'button', class: 'btn btn-sm btn-ghost', onClick: () => this.reveal() }, 'Показати відповідь')),
       this.hintBox,
-      hint('train-formula', 'Найди на графике «опорные» точки: пересечение с осями, вершину. Подставь их координаты в общий вид формулы.'),
+      hint('train-formula', 'Знайди на графіку «опорні» точки: перетин з осями, вершину. Підстав їхні координати в загальний вигляд формули.'),
     );
     this.side = h('div', { class: 'section' });
     right.append(this.side);
     this.renderHints();
     this.renderSide();
-    this.app.setBadge('<span class="muted">Какая функция изображена?</span>');
-    this.app.setPlaneDescription('Задание: по изображённому графику записать формулу функции.');
+    this.app.setBadge('<span class="muted">Яку функцію зображено?</span>');
+    this.app.setPlaneDescription('Завдання: за зображеним графіком записати формулу функції.');
   }
 
   keyPoints() {
     const { family, params, parsed } = this.task;
     const pts = [];
     const f = parsed.evaluate;
-    if (['parabola', 'abs', 'cubic', 'sqrt'].includes(family)) pts.push({ x: params.h, y: params.k, label: family === 'sqrt' ? 'начало' : family === 'cubic' ? 'центр' : 'вершина' });
+    if (['parabola', 'abs', 'cubic', 'sqrt'].includes(family)) pts.push({ x: params.h, y: params.k, label: family === 'sqrt' ? 'початок' : family === 'cubic' ? 'центр' : 'вершина' });
     const y0 = f(0);
     if (Number.isFinite(y0) && !pts.some((p) => p.x === 0)) pts.push({ x: 0, y: y0, label: 'Oy' });
     for (const x of [1, -1, 2]) {
@@ -107,13 +107,13 @@ export class FormulaTask {
   renderHints() {
     clear(this.hintBox);
     if (this.hintLevel >= 1) {
-      this.hintBox.append(h('p', { class: 'small' }, `Отмеченные точки: ${this.keyPoints().map((p) => formatPoint(p.x, p.y)).join(', ')}.`));
+      this.hintBox.append(h('p', { class: 'small' }, `Позначені точки: ${this.keyPoints().map((p) => formatPoint(p.x, p.y)).join(', ')}.`));
     }
     if (this.hintLevel >= 2) {
-      this.hintBox.append(h('p', { class: 'small' }, `Это ${this.task.familyName}. Общий вид: ${FORMS[this.task.family]}.`));
+      this.hintBox.append(h('p', { class: 'small' }, `Це ${this.task.familyName}. Загальний вигляд: ${FORMS[this.task.family]}.`));
     }
     if (this.revealed) {
-      this.hintBox.append(h('p', { class: 'small', html: `Ответ: ${mathLine(this.task.parsed.html)}` }));
+      this.hintBox.append(h('p', { class: 'small', html: `Відповідь: ${mathLine(this.task.parsed.html)}` }));
     }
   }
 
@@ -135,30 +135,30 @@ export class FormulaTask {
   renderSide() {
     clear(this.side);
     this.side.append(h('div', { class: 'section-head' },
-      h('h2', { class: 'section-title' }, 'Проверка'),
-      h('span', { class: 'small muted' }, `решено: ${this.solved} из ${this.attempts}`)));
+      h('h2', { class: 'section-title' }, 'Перевірка'),
+      h('span', { class: 'small muted' }, `розв’язано: ${this.solved} з ${this.attempts}`)));
     if (!this.result) {
-      this.side.append(h('p', { class: 'small' }, 'Введи формулу слева и нажми «Проверить». Твой график появится на плоскости рядом с заданным.'));
+      this.side.append(h('p', { class: 'small' }, 'Введи формулу ліворуч і натисни «Перевірити». Твій графік з’явиться на площині поруч із заданим.'));
       return;
     }
     const r = this.result;
     if (r.equal) {
       this.side.append(h('div', { class: 'verdict is-correct', role: 'status' },
-        h('div', { class: 'verdict-title' }, icon('check', 22), 'Совпадает!'),
-        h('p', { html: `Твоя формула ${mathLine(this.user.html)} задаёт ту же функцию: графики совпали во всех проверенных точках отрезка [−10; 10].` }),
-        this.user.text !== this.task.parsed.text ? h('p', { class: 'small', html: `В задании была записана как ${mathLine(this.task.parsed.html)}.` }) : null));
+        h('div', { class: 'verdict-title' }, icon('check', 22), 'Збігається!'),
+        h('p', { html: `Твоя формула ${mathLine(this.user.html)} задає ту саму функцію: графіки збіглися в усіх перевірених точках відрізка [−10; 10].` }),
+        this.user.text !== this.task.parsed.text ? h('p', { class: 'small', html: `У завданні її було записано як ${mathLine(this.task.parsed.html)}.` }) : null));
     } else {
       const xs = formatNumber(r.x, { decimals: 2 });
       let why;
-      if (Number.isFinite(r.fx) && Number.isFinite(r.gx)) why = `При x = ${xs} на графике y = ${formatValue(r.fx)}, а твоя формула даёт f(${xs}) = ${formatValue(r.gx)}.`;
-      else if (Number.isFinite(r.fx)) why = `При x = ${xs} график существует (y = ${formatValue(r.fx)}), а твоя формула там не определена.`;
-      else why = `При x = ${xs} графика нет, а твоя формула даёт значение ${formatValue(r.gx)}.`;
+      if (Number.isFinite(r.fx) && Number.isFinite(r.gx)) why = `При x = ${xs} на графіку y = ${formatValue(r.fx)}, а твоя формула дає f(${xs}) = ${formatValue(r.gx)}.`;
+      else if (Number.isFinite(r.fx)) why = `При x = ${xs} графік існує (y = ${formatValue(r.fx)}), а твоя формула там не визначена.`;
+      else why = `При x = ${xs} графіка немає, а твоя формула дає значення ${formatValue(r.gx)}.`;
       this.side.append(h('div', { class: 'verdict is-wrong', role: 'status' },
-        h('div', { class: 'verdict-title' }, icon('x', 22), 'Пока не совпадает'),
+        h('div', { class: 'verdict-title' }, icon('x', 22), 'Поки не збігається'),
         h('p', {}, why),
-        h('p', { class: 'small' }, 'Синий — заданный график, красный пунктир — график твоей формулы. Исправь формулу и проверь ещё раз.')));
+        h('p', { class: 'small' }, 'Синій — заданий графік, червоний пунктир — графік твоєї формули. Виправ формулу й перевір ще раз.')));
     }
-    this.side.append(h('button', { type: 'button', class: `btn btn-block ${r.equal ? 'btn-primary' : ''}`, onClick: () => this.newTask() }, 'Новое задание', icon('arrowRight', 16)));
+    this.side.append(h('button', { type: 'button', class: `btn btn-block ${r.equal ? 'btn-primary' : ''}`, onClick: () => this.newTask() }, 'Нове завдання', icon('arrowRight', 16)));
   }
 
   draw(r) {

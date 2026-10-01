@@ -59,10 +59,10 @@ export class InteractivePointMode extends BaseMode {
   mount() {
     const { left, right, overlay } = this.app;
     this.formula = new FormulaInput({
-      label: 'Функция',
+      label: 'Функція',
       prefix: 'f(x) =',
       value: this.parsed.source,
-      submitLabel: 'Применить',
+      submitLabel: 'Застосувати',
       onSubmit: (parsed) => this.setFunction(parsed),
     });
 
@@ -72,7 +72,7 @@ export class InteractivePointMode extends BaseMode {
       return h('button', {
         type: 'button',
         class: 'chip',
-        'aria-label': `Взять функцию f(x) = ${p.text}`,
+        'aria-label': `Взяти функцію f(x) = ${p.text}`,
         onClick: () => {
           this.formula.setValue(src);
           this.setFunction(p);
@@ -129,35 +129,35 @@ export class InteractivePointMode extends BaseMode {
 
     left.append(h('div', { class: 'panel-body' },
       h('section', { class: 'section' },
-        h('h2', { class: 'section-title' }, 'Функция'),
+        h('h2', { class: 'section-title' }, 'Функція'),
         this.formula.el,
-        h('div', { class: 'chips', role: 'group', 'aria-label': 'Готовые функции' },
+        h('div', { class: 'chips', role: 'group', 'aria-label': 'Готові функції' },
           userFns.map((i) => chip(i.source)),
           PRESETS.filter((src) => !userFns.some((i) => i.source === src)).map(chip))),
       h('section', { class: 'section' },
-        h('h2', { class: 'section-title' }, 'Значение x'),
+        h('h2', { class: 'section-title' }, 'Значення x'),
         h('div', { class: 'stepper' },
-          h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Уменьшить x на шаг', onClick: () => this.nudge(-1) }, icon('minus')),
+          h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Зменшити x на крок', onClick: () => this.nudge(-1) }, icon('minus')),
           this.xInput,
-          h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Увеличить x на шаг', onClick: () => this.nudge(1) }, icon('plus'))),
-        h('label', { class: 'sr-only', for: xId }, 'Значение x'),
+          h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Збільшити x на крок', onClick: () => this.nudge(1) }, icon('plus'))),
+        h('label', { class: 'sr-only', for: xId }, 'Значення x'),
         this.xError,
-        h('div', { class: 'field' }, h('label', { class: 'label', for: stepId }, 'Шаг для кнопок, стрелок и привязки'), stepSelect),
-        h('p', { class: 'small muted' }, 'Можно вводить и выражения: −1,5 · pi/2 · √2.')),
+        h('div', { class: 'field' }, h('label', { class: 'label', for: stepId }, 'Крок для кнопок, стрілок і прив’язки'), stepSelect),
+        h('p', { class: 'small muted' }, 'Можна вводити й вирази: −1,5 · pi/2 · √2.')),
       h('section', { class: 'section' },
-        h('h2', { class: 'section-title' }, 'Наблюдение'),
-        sw('Привязка к шагу при перетаскивании', 'snap'),
-        sw('Оставлять след из точек', 'trailOn', () => { if (!this.trailOn) this.trail = []; }),
-        sw('Показывать график функции', 'showCurve'),
+        h('h2', { class: 'section-title' }, 'Спостереження'),
+        sw('Прив’язка до кроку під час перетягування', 'snap'),
+        sw('Залишати слід із точок', 'trailOn', () => { if (!this.trailOn) this.trail = []; }),
+        sw('Показувати графік функції', 'showCurve'),
         this.sweepBtn,
-        h('button', { type: 'button', class: 'btn btn-ghost btn-block', onClick: () => { this.trail = []; this.redraw(); } }, icon('trash', 16), 'Очистить след')),
-      hint('fx-basics', 'Чтобы понять значение f(x), выбери значение x и посмотри, какой y соответствует этой точке. Тяни синюю ручку на оси x или двигай её стрелками ← →.'),
+        h('button', { type: 'button', class: 'btn btn-ghost btn-block', onClick: () => { this.trail = []; this.redraw(); } }, icon('trash', 16), 'Очистити слід')),
+      hint('fx-basics', 'Щоб зрозуміти значення f(x), обери значення x і подивись, який y відповідає цій точці. Тягни синю ручку на осі x або рухай її стрілками ← →.'),
     ));
 
     this.readout = h('div', { class: 'readout', 'aria-live': 'polite' });
     right.append(h('div', { class: 'panel-body' },
       h('section', { class: 'section' }, h('h2', { class: 'section-title' }, 'Результат'), this.readout),
-      hint('fx-trail', 'Включи «след» и пробеги по оси: из отдельных точек (x; f(x)) складывается график. График функции — это множество всех таких точек.'),
+      hint('fx-trail', 'Увімкни «слід» і пробіжи по осі: з окремих точок (x; f(x)) складається графік. Графік функції — це множина всіх таких точок.'),
     ));
 
     // ручка прямой x = a: доступный с клавиатуры ползунок поверх плоскости
@@ -165,7 +165,7 @@ export class InteractivePointMode extends BaseMode {
       class: 'x-handle',
       role: 'slider',
       tabindex: '0',
-      'aria-label': 'Вертикальная прямая x = a',
+      'aria-label': 'Вертикальна пряма x = a',
       'aria-orientation': 'horizontal',
       onKeydown: (e) => this.onHandleKey(e),
       onPointerdown: (e) => this.onHandlePointer(e),
@@ -197,7 +197,7 @@ export class InteractivePointMode extends BaseMode {
     const res = parseConstant(this.xInput.value);
     this.xInput.setAttribute('aria-invalid', res.ok ? 'false' : 'true');
     if (!res.ok) {
-      this.xError.textContent = `Не получилось прочитать x: ${res.error.message}`;
+      this.xError.textContent = `Не вдалося прочитати x: ${res.error.message}`;
       return;
     }
     this.xError.textContent = '';
@@ -259,7 +259,7 @@ export class InteractivePointMode extends BaseMode {
 
   valueText() {
     const fa = this.parsed.evaluate(this.target);
-    return `x = ${formatValue(this.target)}, f(x) ${Number.isFinite(fa) ? `= ${formatValue(fa)}` : 'не определено'}`;
+    return `x = ${formatValue(this.target)}, f(x) ${Number.isFinite(fa) ? `= ${formatValue(fa)}` : 'не визначено'}`;
   }
 
   updateReadout() {
@@ -282,12 +282,12 @@ export class InteractivePointMode extends BaseMode {
       this.readout.append(
         h('div', { class: 'readout-calc' }, `${fName} = ${subst} ${approx} ${result}`),
         h('div', { class: 'readout-row' }, h('span', { class: 'k' }, `y ${approx}`), h('span', { class: 'readout-big' }, result)),
-        h('p', { class: 'small' }, `Точка ${formatPoint(a, value)} лежит на графике: при x = ${aText} функция принимает значение ${result}.`),
+        h('p', { class: 'small' }, `Точка ${formatPoint(a, value)} лежить на графіку: при x = ${aText} функція набуває значення ${result}.`),
       );
     } else {
       this.readout.append(
-        h('div', { class: 'readout-calc is-undefined' }, `${fName} не определено: ${reason}.`),
-        h('p', { class: 'small muted' }, `Прямая x = ${aText} не пересекает график — точки с таким x на нём нет.`),
+        h('div', { class: 'readout-calc is-undefined' }, `${fName} не визначено: ${reason}.`),
+        h('p', { class: 'small muted' }, `Пряма x = ${aText} не перетинає графік — точки з таким x на ньому немає.`),
       );
     }
     this.handle?.setAttribute('aria-valuenow', String(a));
@@ -416,7 +416,7 @@ export class InteractivePointMode extends BaseMode {
 
   updateSweepButton() {
     if (!this.sweepBtn) return;
-    this.sweepBtn.replaceChildren(icon(this.sweep ? 'pause' : 'play', 16), this.sweep ? 'Остановить' : 'Пробежать по оси x');
+    this.sweepBtn.replaceChildren(icon(this.sweep ? 'pause' : 'play', 16), this.sweep ? 'Зупинити' : 'Пробігти по осі x');
     this.sweepBtn.setAttribute('aria-pressed', String(Boolean(this.sweep)));
   }
 
@@ -459,6 +459,6 @@ export class InteractivePointMode extends BaseMode {
 
   describe() {
     this.app.setBadge(`<span class="math-lhs">f(x) =</span><span class="math">${this.parsed.html}</span>`);
-    this.app.setPlaneDescription(`График функции f(x) = ${this.parsed.text} и вертикальная прямая x = a, которую можно двигать.`);
+    this.app.setPlaneDescription(`Графік функції f(x) = ${this.parsed.text} і вертикальна пряма x = a, яку можна рухати.`);
   }
 }

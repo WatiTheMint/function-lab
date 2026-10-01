@@ -11,9 +11,9 @@ import { FormulaTask } from './training/FormulaTask.js';
 import { h } from '../ui/dom.js';
 
 const KINDS = [
-  { id: 'points', label: 'По точкам', title: 'Построй график по точкам', make: (m) => new PointsTask(m) },
-  { id: 'choice', label: 'Выбор', title: 'Выбери график среди вариантов', make: (m) => new ChoiceTask(m) },
-  { id: 'formula', label: 'Формула', title: 'Запиши формулу по графику', make: (m) => new FormulaTask(m) },
+  { id: 'points', label: 'За точками', title: 'Побудуй графік за точками', make: (m) => new PointsTask(m) },
+  { id: 'choice', label: 'Вибір', title: 'Обери графік серед варіантів', make: (m) => new ChoiceTask(m) },
+  { id: 'formula', label: 'Формула', title: 'Запиши формулу за графіком', make: (m) => new FormulaTask(m) },
 ];
 
 export class TrainingMode extends BaseMode {
@@ -48,7 +48,7 @@ export class TrainingMode extends BaseMode {
     this.subLeft = h('div', { class: 'section' });
     this.subRight = h('div', { class: 'section' });
     left.append(h('div', { class: 'panel-body' },
-      h('div', { class: 'segmented is-block', role: 'tablist', 'aria-label': 'Упражнение' }, this.tabs),
+      h('div', { class: 'segmented is-block', role: 'tablist', 'aria-label': 'Вправа' }, this.tabs),
       this.subLeft));
     right.append(h('div', { class: 'panel-body' }, this.subRight));
     this.sub.mount(this.subLeft, this.subRight);

@@ -58,11 +58,11 @@ export class ValueTable {
       class: 'btn btn-block',
       'aria-pressed': 'false',
       onClick: () => this.setShowPoints(!this.showPoints),
-    }, icon('dot', 16), h('span', {}, 'Показать точки на графике'));
-    this.tableWrap = h('div', { class: 'table-wrap', tabindex: '0', role: 'region', 'aria-label': 'Таблица значений' });
+    }, icon('dot', 16), h('span', {}, 'Показати точки на графіку'));
+    this.tableWrap = h('div', { class: 'table-wrap', tabindex: '0', role: 'region', 'aria-label': 'Таблиця значень' });
 
     this.el = h('div', { class: 'section' },
-      h('div', { class: 'range-grid' }, field('start', 'Начало'), field('end', 'Конец'), field('step', 'Шаг')),
+      h('div', { class: 'range-grid' }, field('start', 'Початок'), field('end', 'Кінець'), field('step', 'Крок')),
       this.error,
       this.toggleBtn,
       this.tableWrap,
@@ -79,13 +79,13 @@ export class ValueTable {
     for (const key of ['start', 'end', 'step']) {
       const res = parseConstant(this[`${key}Input`].value);
       this[`${key}Input`].setAttribute('aria-invalid', res.ok ? 'false' : 'true');
-      if (!res.ok) return this.fail(`«${this[`${key}Input`].value || 'пусто'}» — не число`);
+      if (!res.ok) return this.fail(`«${this[`${key}Input`].value || 'порожньо'}» — не число`);
       vals[key] = res.value;
     }
-    if (!(vals.step > 0)) return this.fail('Шаг должен быть больше нуля');
-    if (vals.end < vals.start) return this.fail('Конец диапазона должен быть не меньше начала');
+    if (!(vals.step > 0)) return this.fail('Крок має бути більшим за нуль');
+    if (vals.end < vals.start) return this.fail('Кінець діапазону має бути не меншим за початок');
     const count = Math.floor((vals.end - vals.start) / vals.step + 1e-9) + 1;
-    if (count > MAX_ROWS) return this.fail(`Получится ${count} ${plural(count, 'строка', 'строки', 'строк')} — это слишком много. Увеличьте шаг или сузьте диапазон (максимум ${MAX_ROWS}).`);
+    if (count > MAX_ROWS) return this.fail(`Вийде ${count} ${plural(count, 'рядок', 'рядки', 'рядків')} — це забагато. Збільште крок або звузьте діапазон (максимум ${MAX_ROWS}).`);
     this.error.textContent = '';
     this.range = vals;
     this.render();
@@ -101,7 +101,7 @@ export class ValueTable {
   setShowPoints(on) {
     this.showPoints = on;
     this.toggleBtn.setAttribute('aria-pressed', String(on));
-    this.toggleBtn.querySelector('span').textContent = on ? 'Скрыть точки на графике' : 'Показать точки на графике';
+    this.toggleBtn.querySelector('span').textContent = on ? 'Сховати точки на графіку' : 'Показати точки на графіку';
     this.hooks.onChange?.();
   }
 
@@ -123,10 +123,10 @@ export class ValueTable {
         onMouseleave: () => this.hooks.onHoverRow?.(null),
       },
       h('td', {}, formatNumber(r.x, { decimals: 6 })),
-      text === null ? h('td', { class: 'is-undefined' }, 'не определено') : h('td', {}, text));
+      text === null ? h('td', { class: 'is-undefined' }, 'не визначено') : h('td', {}, text));
     }));
     this.tableWrap.append(h('table', { class: 'value-table' },
-      h('caption', {}, `${this.rows.length} ${plural(this.rows.length, 'строка', 'строки', 'строк')} · значения округлены до 4 знаков, «≈» — значение неточное`),
+      h('caption', {}, `${this.rows.length} ${plural(this.rows.length, 'рядок', 'рядки', 'рядків')} · значення округлено до 4 знаків, «≈» — значення неточне`),
       h('thead', {}, h('tr', {}, h('th', { scope: 'col' }, 'x'), h('th', { scope: 'col' }, 'f(x)'))),
       tbody));
   }

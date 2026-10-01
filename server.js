@@ -32,7 +32,7 @@ createServer(async (req, res) => {
     res.writeHead(200, { 'Content-Type': TYPES[extname(path)] ?? 'application/octet-stream', 'Cache-Control': 'no-cache' });
     res.end(body);
   } catch {
-    res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }).end('Не найдено');
+    res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }).end('Не знайдено');
   }
 }).listen(port, '127.0.0.1', () => {
   console.log(`Function Lab: http://localhost:${port}`);

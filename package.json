@@ -1,7 +1,7 @@
 {
   "name": "function-lab",
   "version": "1.0.0",
-  "description": "Function Lab — интерактивная лаборатория функций и их графиков",
+  "description": "Function Lab — інтерактивна лабораторія функцій та їхніх графіків",
   "type": "module",
   "private": true,
   "scripts": {

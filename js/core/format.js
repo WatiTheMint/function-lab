@@ -48,8 +48,8 @@ export function formatNumber(v, { decimals = 4 } = {}) {
 
 /** Значение функции для показа пользователю: всегда осмысленная строка. */
 export function formatValue(v, opts) {
-  if (Number.isNaN(v)) return 'не определено';
-  if (!Number.isFinite(v)) return 'слишком велико';
+  if (Number.isNaN(v)) return 'не визначено';
+  if (!Number.isFinite(v)) return 'занадто велике';
   return formatNumber(v, opts);
 }
 

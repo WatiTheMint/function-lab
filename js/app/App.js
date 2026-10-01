@@ -115,7 +115,7 @@ export class App {
 
   setPlaneDescription(text) {
     $('plane-desc').textContent = text;
-    this.canvas.setAttribute('aria-label', `Координатная плоскость. ${text}`);
+    this.canvas.setAttribute('aria-label', `Координатна площина. ${text}`);
   }
 
   // ─────────────── Шапка ───────────────
@@ -145,8 +145,8 @@ export class App {
     const dark = this.theme.resolved === 'dark';
     const btn = $('theme-btn');
     btn.replaceChildren(icon(dark ? 'sun' : 'moon'));
-    btn.setAttribute('aria-label', dark ? 'Включить светлую тему' : 'Включить тёмную тему');
-    btn.title = dark ? 'Светлая тема' : 'Тёмная тема';
+    btn.setAttribute('aria-label', dark ? 'Увімкнути світлу тему' : 'Увімкнути темну тему');
+    btn.title = dark ? 'Світла тема' : 'Темна тема';
     // CSS-переменные обновляются синхронно после смены data-theme
     this.renderer.readColors();
     this.mode?.onTheme?.();
@@ -182,7 +182,7 @@ export class App {
       const id = this.mode.id;
       this.mode = null;
       this.switchTo(id);
-      showToast('Подсказки снова видны');
+      showToast('Підказки знову видно');
     });
   }
 }

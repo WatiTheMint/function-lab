@@ -9,7 +9,7 @@ import { icon } from '../ui/icons.js';
 import { formatNumber, formatPoint, plural } from '../core/format.js';
 
 const KEY = 'fl.test.stats';
-const YES_KEYS = new Set(['1', 'д', 'y']);
+const YES_KEYS = new Set(['1', 'т', 'y']);
 const NO_KEYS = new Set(['2', 'н', 'n']);
 
 export class FunctionTest extends BaseMode {
@@ -33,25 +33,25 @@ export class FunctionTest extends BaseMode {
     left.append(h('div', { class: 'panel-body' },
       h('section', { class: 'section' },
         h('div', { class: 'section-head' },
-          h('h2', { class: 'section-title' }, 'Счёт'),
-          h('button', { type: 'button', class: 'btn btn-ghost btn-sm', onClick: () => this.resetStats() }, icon('reset', 14), 'Сбросить')),
+          h('h2', { class: 'section-title' }, 'Рахунок'),
+          h('button', { type: 'button', class: 'btn btn-ghost btn-sm', onClick: () => this.resetStats() }, icon('reset', 14), 'Скинути')),
         this.statsEl),
       h('section', { class: 'section' },
-        h('h2', { class: 'section-title' }, 'Критерий'),
-        h('p', { class: 'small' }, 'График задаёт функцию y = f(x), если каждому x соответствует не больше одного y. Проверка: если найдётся вертикальная прямая, которая пересекает график хотя бы в двух точках, — это не функция.')),
-      hint('test-basics', 'Проведи мысленно вертикальную линию. Если она пересекает график более одного раза — это не функция.'),
+        h('h2', { class: 'section-title' }, 'Критерій'),
+        h('p', { class: 'small' }, 'Графік задає функцію y = f(x), якщо кожному x відповідає не більше одного y. Перевірка: якщо знайдеться вертикальна пряма, яка перетинає графік хоча б у двох точках, — це не функція.')),
+      hint('test-basics', 'Проведи подумки вертикальну лінію. Якщо вона перетинає графік більше ніж один раз — це не функція.'),
     ));
 
     this.side = h('div', { class: 'panel-body' });
     right.append(this.side);
 
     this.yesBtn = h('button', { type: 'button', class: 'btn btn-lg btn-success', onClick: () => this.respond(true) },
-      icon('check'), 'Да, это функция', h('kbd', { 'aria-hidden': 'true' }, 'Д'));
+      icon('check'), 'Так, це функція', h('kbd', { 'aria-hidden': 'true' }, 'Т'));
     this.noBtn = h('button', { type: 'button', class: 'btn btn-lg btn-danger', onClick: () => this.respond(false) },
-      icon('x'), 'Нет, это не функция', h('kbd', { 'aria-hidden': 'true' }, 'Н'));
+      icon('x'), 'Ні, це не функція', h('kbd', { 'aria-hidden': 'true' }, 'Н'));
     this.nextBtn = h('button', { type: 'button', class: 'btn btn-lg btn-primary', onClick: () => this.next() },
-      'Следующий график', icon('arrowRight'));
-    this.bar = h('div', { class: 'answer-bar', role: 'group', 'aria-label': 'Ответ' });
+      'Наступний графік', icon('arrowRight'));
+    this.bar = h('div', { class: 'answer-bar', role: 'group', 'aria-label': 'Відповідь' });
     footer.append(this.bar);
 
     const onKey = (e) => this.onGlobalKey(e);
@@ -78,7 +78,7 @@ export class FunctionTest extends BaseMode {
     this.task = { shape, truth: verticalTest(shape) };
     this.answer = null;
     this.probe = null;
-    this.app.setPlaneDescription(`Задание: на плоскости изображён график «${shape.title}». Является ли он графиком функции?`);
+    this.app.setPlaneDescription(`Завдання: на площині зображено графік «${shape.title}». Чи є він графіком функції?`);
     if (this.app.viewTouched) this.app.resetView();
     this.renderState();
     this.redraw();
@@ -119,7 +119,7 @@ export class FunctionTest extends BaseMode {
     const key = e.key.toLowerCase();
     if (this.answer === null && YES_KEYS.has(key)) { e.preventDefault(); this.respond(true); }
     else if (this.answer === null && NO_KEYS.has(key)) { e.preventDefault(); this.respond(false); }
-    else if (this.answer !== null && (e.key === 'Enter' || key === 'n' || key === 'т') && t === document.body) { e.preventDefault(); this.next(); }
+    else if (this.answer !== null && (e.key === 'Enter' || key === 'n' || key === 'д') && t === document.body) { e.preventDefault(); this.next(); }
   }
 
   // ─────────────── Отрисовка панелей ───────────────
@@ -130,10 +130,10 @@ export class FunctionTest extends BaseMode {
     const pct = total ? Math.round((s.correct / total) * 100) : null;
     const tile = (value, label, cls = '') => h('div', { class: `stat ${cls}` }, h('span', { class: 'stat-value' }, value), h('span', { class: 'stat-label' }, label));
     clear(this.statsEl).append(
-      tile(String(s.correct), 'правильных', 'is-good'),
-      tile(String(s.wrong), plural(s.wrong, 'ошибка', 'ошибки', 'ошибок'), s.wrong ? 'is-bad' : ''),
-      tile(pct === null ? '—' : `${pct}%`, 'точность'),
-      tile(String(s.streak), `серия · лучшая ${s.best}`),
+      tile(String(s.correct), 'правильних', 'is-good'),
+      tile(String(s.wrong), plural(s.wrong, 'помилка', 'помилки', 'помилок'), s.wrong ? 'is-bad' : ''),
+      tile(pct === null ? '—' : `${pct}%`, 'точність'),
+      tile(String(s.streak), `серія · найкраща ${s.best}`),
     );
   }
 
@@ -145,9 +145,9 @@ export class FunctionTest extends BaseMode {
       this.bar.append(this.yesBtn, this.noBtn);
       this.side.append(
         h('section', { class: 'section' },
-          h('h2', { class: 'section-title' }, 'Вопрос'),
-          h('p', {}, 'Является ли изображённая линия графиком функции y = f(x)?'),
-          h('p', { class: 'small muted' }, 'Ответьте кнопками под графиком или клавишами Д / Н. Плоскость можно двигать и масштабировать.')),
+          h('h2', { class: 'section-title' }, 'Питання'),
+          h('p', {}, 'Чи є зображена лінія графіком функції y = f(x)?'),
+          h('p', { class: 'small muted' }, 'Відповідайте кнопками під графіком або клавішами Т / Н. Площину можна рухати й масштабувати.')),
       );
       return;
     }
@@ -156,24 +156,24 @@ export class FunctionTest extends BaseMode {
     const w = truth.witness;
     let explanation;
     if (truth.isFunction) {
-      explanation = 'Любая вертикальная прямая пересекает этот график не больше чем в одной точке: каждому x соответствует единственное значение y. Значит, это функция.';
+      explanation = 'Будь-яка вертикальна пряма перетинає цей графік не більше ніж в одній точці: кожному x відповідає єдине значення y. Отже, це функція.';
     } else if (w.ys === 'all') {
-      explanation = `Прямая x = ${formatNumber(w.x)} совпадает с графиком — точек пересечения бесконечно много. Одному x соответствует бесконечно много y, значит, это не функция.`;
+      explanation = `Пряма x = ${formatNumber(w.x)} збігається з графіком — точок перетину нескінченно багато. Одному x відповідає нескінченно багато y, отже, це не функція.`;
     } else {
       const pts = w.ys.map((y) => formatPoint(w.x, y, { decimals: 2 })).join(', ');
-      explanation = `Прямая x = ${formatNumber(w.x, { decimals: 2 })} пересекает график в ${w.ys.length} ${plural(w.ys.length, 'точке', 'точках', 'точках')}: ${pts}. Одному x соответствуют разные y — значит, это не функция.`;
+      explanation = `Пряма x = ${formatNumber(w.x, { decimals: 2 })} перетинає графік у ${w.ys.length} ${plural(w.ys.length, 'точці', 'точках', 'точках')}: ${pts}. Одному x відповідають різні y — отже, це не функція.`;
     }
     this.side.append(
       h('div', { class: `verdict ${correct ? 'is-correct' : 'is-wrong'}`, role: 'status' },
         h('div', { class: 'verdict-title' }, icon(correct ? 'check' : 'x', 22), correct ? 'Правильно!' : 'Неправильно'),
-        h('p', {}, h('strong', {}, `Правильный ответ: ${truth.isFunction ? 'да, это функция' : 'нет, это не функция'}.`)),
+        h('p', {}, h('strong', {}, `Правильна відповідь: ${truth.isFunction ? 'так, це функція' : 'ні, це не функція'}.`)),
         h('p', {}, explanation)),
       h('section', { class: 'section' },
-        h('h2', { class: 'section-title' }, 'Что было на графике'),
+        h('h2', { class: 'section-title' }, 'Що було на графіку'),
         h('p', { html: `<strong>${shape.title}</strong>` }),
         h('p', { html: shape.equation }),
         shape.note ? h('p', { class: 'small muted' }, shape.note) : null),
-      hint('test-probe', 'Теперь вертикальную прямую можно тянуть мышью и смотреть, сколько точек пересечения получается.'),
+      hint('test-probe', 'Тепер вертикальну пряму можна тягнути мишею й дивитися, скільки точок перетину виходить.'),
     );
   }
 
@@ -243,7 +243,7 @@ export class FunctionTest extends BaseMode {
     r.drawVLine(x, { color: lineColor, width: all ? 4 : 2, dash: all ? null : [7, 5], alpha: 0.95 });
     for (const y of ys) r.drawPoint(x, y, { color: lineColor, r: 6, ring: many ? 6 : 4 });
 
-    const count = all ? 'бесконечно много точек' : `${ys.length} ${plural(ys.length, 'точка', 'точки', 'точек')}`;
+    const count = all ? 'нескінченно багато точок' : `${ys.length} ${plural(ys.length, 'точка', 'точки', 'точок')}`;
     const px = this.cs.x2px(x);
     r.drawLabel(px + 10, 18, `x = ${formatNumber(x, { decimals: 2 })}: ${count}`, {
       baseline: 'top',

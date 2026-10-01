@@ -14,7 +14,7 @@ export function hint(id, content) {
     h('button', {
       type: 'button',
       class: 'icon-btn is-quiet',
-      'aria-label': 'Скрыть подсказку',
+      'aria-label': 'Сховати підказку',
       onClick: () => {
         storage.set(KEY, [...new Set([...storage.get(KEY, []), id])]);
         el.remove();

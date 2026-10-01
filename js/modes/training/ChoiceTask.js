@@ -50,7 +50,7 @@ export class ChoiceTask {
       const btn = h('button', {
         type: 'button',
         class: 'option',
-        'aria-label': `Вариант ${LETTERS[i]}`,
+        'aria-label': `Варіант ${LETTERS[i]}`,
         onClick: () => this.choose(i),
         onMouseenter: () => this.setPreview(i),
         onMouseleave: () => this.setPreview(null),
@@ -61,19 +61,19 @@ export class ChoiceTask {
     });
     left.append(
       h('div', { class: 'task-card' },
-        h('span', { class: 'task-label' }, 'Задание'),
-        h('p', {}, 'Какой из графиков — график функции'),
+        h('span', { class: 'task-label' }, 'Завдання'),
+        h('p', {}, 'Який із графіків — графік функції'),
         h('div', { html: mathLine(target.parsed.html) })),
-      h('div', { class: 'options', role: 'group', 'aria-label': 'Варианты графиков' }, this.optionBtns.map((o) => o.btn)),
-      hint('train-choice', 'Наведи на вариант — он появится крупно на плоскости. Подставь в формулу простые x (0, 1, −1) и сравни с графиком.'),
+      h('div', { class: 'options', role: 'group', 'aria-label': 'Варіанти графіків' }, this.optionBtns.map((o) => o.btn)),
+      hint('train-choice', 'Наведи на варіант — він з’явиться великим на площині. Підстав у формулу прості x (0, 1, −1) і порівняй із графіком.'),
     );
     this.side = h('div', { class: 'section' });
     right.append(this.side);
     this.renderSide();
     // мини-графики создаём после вставки в DOM: нужен размер холста
     requestAnimationFrame(() => this.createMinis());
-    this.app.setBadge(`<span class="muted">Найди график</span>${mathLine(target.parsed.html)}`);
-    this.app.setPlaneDescription(`Задание: выбрать график функции y = ${target.parsed.text} из четырёх вариантов.`);
+    this.app.setBadge(`<span class="muted">Знайди графік</span>${mathLine(target.parsed.html)}`);
+    this.app.setPlaneDescription(`Завдання: вибрати графік функції y = ${target.parsed.text} з чотирьох варіантів.`);
   }
 
   createMinis() {
@@ -127,7 +127,7 @@ export class ChoiceTask {
       o.btn.disabled = true;
       if (j === this.task.correctIndex) o.btn.classList.add('is-correct');
       else if (j === i) o.btn.classList.add('is-wrong');
-      o.btn.setAttribute('aria-label', `Вариант ${LETTERS[j]}: y = ${o.opt.parsed.text}${j === this.task.correctIndex ? ' — правильный' : ''}`);
+      o.btn.setAttribute('aria-label', `Варіант ${LETTERS[j]}: y = ${o.opt.parsed.text}${j === this.task.correctIndex ? ' — правильний' : ''}`);
     });
     for (const r of this.minis) r.requestRender();
     this.renderSide();
@@ -140,18 +140,18 @@ export class ChoiceTask {
     const cmp = compareFunctions(target.parsed.evaluate, chosen.parsed.evaluate, { xMin: -6, xMax: 6 });
     if (cmp.equal) return null;
     const xs = formatNumber(cmp.x, { decimals: 2 });
-    const fx = Number.isFinite(cmp.fx) ? `f(${xs}) = ${toText(target.parsed.ast, xs)} = ${formatValue(cmp.fx)}` : `при x = ${xs} функция не определена`;
-    const gx = Number.isFinite(cmp.gx) ? `на выбранном графике y = ${formatValue(cmp.gx)}` : 'на выбранном графике точки с таким x нет';
-    return { text: `Проверим x = ${xs}: ${fx}, а ${gx}.`, x: cmp.x, fx: cmp.fx, gx: cmp.gx };
+    const fx = Number.isFinite(cmp.fx) ? `f(${xs}) = ${toText(target.parsed.ast, xs)} = ${formatValue(cmp.fx)}` : `при x = ${xs} функція не визначена`;
+    const gx = Number.isFinite(cmp.gx) ? `на вибраному графіку y = ${formatValue(cmp.gx)}` : 'на вибраному графіку точки з таким x немає';
+    return { text: `Перевіримо x = ${xs}: ${fx}, а ${gx}.`, x: cmp.x, fx: cmp.fx, gx: cmp.gx };
   }
 
   renderSide() {
     clear(this.side);
     this.side.append(h('div', { class: 'section-head' },
-      h('h2', { class: 'section-title' }, 'Ответ'),
-      h('span', { class: 'small muted' }, `решено: ${this.solved} из ${this.attempts}`)));
+      h('h2', { class: 'section-title' }, 'Відповідь'),
+      h('span', { class: 'small muted' }, `розв’язано: ${this.solved} з ${this.attempts}`)));
     if (this.chosen === null) {
-      this.side.append(h('p', { class: 'small' }, 'Выбери один из четырёх графиков слева.'));
+      this.side.append(h('p', { class: 'small' }, 'Обери один із чотирьох графіків ліворуч.'));
       return;
     }
     const { target, options, correctIndex } = this.task;
@@ -161,15 +161,15 @@ export class ChoiceTask {
     const y0 = target.parsed.evaluate(0);
     this.side.append(
       h('div', { class: `verdict ${ok ? 'is-correct' : 'is-wrong'}`, tabindex: '-1', role: 'status' },
-        h('div', { class: 'verdict-title' }, icon(ok ? 'check' : 'x', 22), ok ? 'Правильно!' : 'Не тот график'),
-        h('p', {}, `Правильный ответ — вариант ${LETTERS[correctIndex]}. На плоскости он показан зелёным${ok ? '' : ', а выбранный — красным пунктиром'}.`),
+        h('div', { class: 'verdict-title' }, icon(ok ? 'check' : 'x', 22), ok ? 'Правильно!' : 'Не той графік'),
+        h('p', {}, `Правильна відповідь — варіант ${LETTERS[correctIndex]}. На площині його показано зеленим${ok ? '' : ', а вибраний — червоним пунктиром'}.`),
         diff ? h('p', {}, diff.text) : null,
-        Number.isFinite(y0) ? h('p', { class: 'small' }, `Подсказка на будущее: график пересекает ось Oy в точке (0; ${formatValue(y0)}) — подставь x = 0.`) : null),
+        Number.isFinite(y0) ? h('p', { class: 'small' }, `Підказка на майбутнє: графік перетинає вісь Oy у точці (0; ${formatValue(y0)}) — підстав x = 0.`) : null),
       h('ul', { class: 'point-list' }, options.map((o, j) => h('li', {},
         h('strong', {}, `${LETTERS[j]}:`),
         h('span', { html: mathLine(o.parsed.html) }),
         j === correctIndex ? h('span', { class: 'ok' }, '✓') : null))),
-      h('button', { type: 'button', class: 'btn btn-primary btn-block', onClick: () => this.newTask() }, 'Следующее задание', icon('arrowRight', 16)),
+      h('button', { type: 'button', class: 'btn btn-primary btn-block', onClick: () => this.newTask() }, 'Наступне завдання', icon('arrowRight', 16)),
     );
   }
 
@@ -178,7 +178,7 @@ export class ChoiceTask {
     if (this.chosen === null) {
       if (this.preview !== null) {
         r.plotFunction(options[this.preview].parsed.evaluate, { color: r.colors.fn[0], width: 2.6 });
-        r.drawLabel(12, 14, `Вариант ${LETTERS[this.preview]}`, { baseline: 'top', font: '600 13px "IBM Plex Sans", sans-serif' });
+        r.drawLabel(12, 14, `Варіант ${LETTERS[this.preview]}`, { baseline: 'top', font: '600 13px "IBM Plex Sans", sans-serif' });
       }
       return;
     }

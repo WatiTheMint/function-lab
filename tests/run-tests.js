@@ -96,7 +96,7 @@ test('ошибки ввода распознаются и объясняются
     ok(!r.ok, `«${src}» должно быть ошибкой`);
     ok(r.error.message.length > 5, `у «${src}» должно быть понятное сообщение`);
   }
-  ok(/вертикальная прямая/.test(parseFunction('x = 3').error.message), 'x = 3 — подсказка про вертикальную прямую');
+  ok(/вертикальна пряма/.test(parseFunction('x = 3').error.message), 'x = 3 — подсказка про вертикальную прямую');
   ok(/sqrt/.test(parseFunction('sqr(x)').error.message), 'подсказка sqrt');
 });
 
@@ -106,7 +106,7 @@ test('печать формулы и подстановка', () => {
   eq(f('1/(2x)').text, '1/(2x)');
   eq(f('|x-2|').text, '|x − 2|');
   const { reason } = explainAt(f('1/x').ast, 0);
-  ok(/деление на ноль/.test(reason), reason);
+  ok(/ділення на нуль/.test(reason), reason);
 });
 
 test('parseConstant: числа и выражения без x', () => {
@@ -120,8 +120,8 @@ test('parseConstant: числа и выражения без x', () => {
 test('числа выводятся по-русски, без NaN и Infinity', () => {
   eq(formatNumber(-2.5), '−2,5');
   eq(formatNumber(1 / 3), '0,3333');
-  eq(formatValue(NaN), 'не определено');
-  eq(formatValue(Infinity), 'слишком велико');
+  eq(formatValue(NaN), 'не визначено');
+  eq(formatValue(Infinity), 'занадто велике');
   eq(formatNumber(12345678), '1,235·10⁷');
   eq(describeNumber(Math.SQRT2).text, '√2');
   eq(formatPiMultiple(Math.PI / 2), 'π/2');
@@ -153,17 +153,17 @@ test('анализ x²', () => {
   eq(section(a, 'zeros').text, 'x = 0');
   eq(section(a, 'inc').text, '[0; +∞)');
   eq(section(a, 'dec').text, '(−∞; 0]');
-  ok(/чётная/.test(section(a, 'parity').text), 'чётность');
+  ok(/парна/.test(section(a, 'parity').text), 'парність');
   eq(section(a, 'extrema').text, 'min: (0; 0)');
 });
 
 test('анализ 1/x: разрыв, асимптоты, нечётность', () => {
   const a = analyzeFunction(f('1/x'));
   eq(section(a, 'domain').text, 'x ≠ 0');
-  ok(/нет/.test(section(a, 'zeros').text), 'нулей нет');
-  ok(/не входит/.test(section(a, 'yint').text), 'нет пересечения с Oy');
-  eq(section(a, 'asym').text, 'вертикальная: x = 0; горизонтальная: y = 0');
-  ok(/^нечётная/.test(section(a, 'parity').text), 'нечётная');
+  ok(/немає/.test(section(a, 'zeros').text), 'нулів немає');
+  ok(/не входить/.test(section(a, 'yint').text), 'немає перетину з Oy');
+  eq(section(a, 'asym').text, 'вертикальна: x = 0; горизонтальна: y = 0');
+  ok(/^непарна/.test(section(a, 'parity').text), 'непарна');
 });
 
 test('анализ sin(x): периодические ответы точны', () => {
@@ -187,8 +187,8 @@ test('анализ |x − 2|, √(9 − x²), tg x, ln x', () => {
 
 test('выколотая точка не выдаётся за асимптоту', () => {
   const a = analyzeFunction(f('(x^2 - 1)/(x - 1)'));
-  eq(section(a, 'asym').text, 'нет');
-  ok(/Выколотая точка \(1; 2\)/.test(section(a, 'asym').note), 'упоминание выколотой точки');
+  eq(section(a, 'asym').text, 'немає');
+  ok(/Виколота точка \(1; 2\)/.test(section(a, 'asym').note), 'упоминание выколотой точки');
 });
 
 test('честность: приближённые выводы помечены, неизвестное — «не удалось»', () => {
@@ -196,7 +196,7 @@ test('честность: приближённые выводы помечены
   eq(section(a, 'zeros').status, 'numeric');
   const b = analyzeFunction(f('x^x'));
   eq(section(b, 'domain').status, 'unknown');
-  eq(section(b, 'domain').text, 'Не удалось определить автоматически');
+  eq(section(b, 'domain').text, 'Не вдалося визначити автоматично');
   const c = analyzeFunction(f('x^100'));
   eq(section(c, 'dec').text, '(−∞; 0]'); // а не «постоянна» около нуля
 });
@@ -244,7 +244,7 @@ test('сравнение формул: разная запись — одна ф
   ok(compareFunctions(f('sqrt(x^2)').evaluate, f('|x|').evaluate).equal, '√(x²) = |x|');
 });
 
-console.log(`\nFunction Lab — тесты ядра: ${passed} пройдено, ${failures.length} с ошибками\n`);
+console.log(`\nFunction Lab — тести ядра: ${passed} пройдено, ${failures.length} з помилками\n`);
 if (failures.length) {
   console.log(failures.join('\n'));
   process.exit(1);
