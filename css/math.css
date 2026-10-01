@@ -1,0 +1,101 @@
+/* Набор формул: дроби «этажом», степени, корень с чертой. Разметку генерирует FunctionParser.toHTML. */
+
+.math {
+  font-family: var(--font-math);
+  font-size: 1.14em;
+  line-height: 1.2;
+  white-space: nowrap;
+  font-variant-numeric: lining-nums;
+}
+
+.math .m-v,
+.math .m-c {
+  font-style: italic;
+}
+
+.math .m-n,
+.math .m-f {
+  font-style: normal;
+}
+
+.math .m-f {
+  margin-right: 0.08em;
+}
+
+.math .m-o {
+  margin: 0 0.24em;
+}
+
+.math .m-u {
+  margin-right: 0.04em;
+}
+
+.math .m-j {
+  display: inline-block;
+  width: 0.06em;
+}
+
+.math .m-p,
+.math .m-abs {
+  font-style: normal;
+  margin: 0 0.04em;
+}
+
+.math .m-sup {
+  font-size: 0.7em;
+  vertical-align: 0.62em;
+  line-height: 0;
+  margin-left: 0.04em;
+}
+
+.math .m-sup .m-sup {
+  font-size: 0.85em;
+}
+
+.math .m-sub {
+  font-size: 0.7em;
+  vertical-align: -0.25em;
+  line-height: 0;
+}
+
+.math .m-frac {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: middle;
+  font-size: 0.86em;
+  margin: 0 0.12em;
+  line-height: 1.15;
+}
+
+.math .m-fn {
+  padding: 0 0.18em 0.06em;
+  border-bottom: 0.07em solid currentColor;
+}
+
+.math .m-fd {
+  padding: 0.06em 0.18em 0;
+}
+
+.math .m-sqrt {
+  display: inline-flex;
+  align-items: stretch;
+  white-space: nowrap;
+}
+
+.math .m-rad {
+  font-style: normal;
+  padding-right: 0.02em;
+}
+
+.math .m-rd {
+  border-top: 0.07em solid currentColor;
+  padding: 0.04em 0.1em 0 0.06em;
+  margin-top: 0.12em;
+}
+
+.math-lhs {
+  font-family: var(--font-math);
+  font-style: italic;
+  margin-right: 0.3em;
+}

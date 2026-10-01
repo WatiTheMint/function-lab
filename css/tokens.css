@@ -1,0 +1,129 @@
+/* Дизайн-токены: минимализм / Swiss-стиль. Все цвета компонентов берутся отсюда. */
+
+:root {
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+  --font-math: "STIX Two Text", "Cambria Math", "Times New Roman", serif;
+
+  --text-xs: 12px;
+  --text-sm: 13.5px;
+  --text-base: 15px;
+  --text-lg: 17px;
+  --text-xl: 20px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  --radius-sm: 8px;
+  --radius: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  --dur-fast: 120ms;
+  --dur: 200ms;
+  --dur-slow: 320ms;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  --tap: 40px;
+}
+
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f4f6fa;
+  --surface: #ffffff;
+  --surface-2: #f6f8fb;
+  --surface-3: #eceff5;
+  --border: #e2e7f0;
+  --border-strong: #c9d1df;
+  --text: #0f172a;
+  --text-2: #334155;
+  --muted: #5b6578;
+
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  --accent-soft: #eef0ff;
+  --accent-text: #3730a3;
+  --on-accent: #ffffff;
+  --focus: #4f46e5;
+
+  --success: #047857;
+  --success-soft: #e6f6ee;
+  --danger: #dc2626;
+  --danger-soft: #fdeceb;
+  --warning: #b45309;
+  --warning-soft: #fdf3e3;
+
+  --plane-bg: #ffffff;
+  --grid-minor: rgba(15, 23, 42, 0.045);
+  --grid-major: rgba(15, 23, 42, 0.1);
+  --axis: #334155;
+  --tick-label: #5b6578;
+  --label-halo: #ffffff;
+
+  --fn-1: #2563eb;
+  --fn-2: #dc2626;
+  --fn-3: #059669;
+  --fn-4: #7c3aed;
+  --fn-5: #ea580c;
+  --fn-6: #0891b2;
+  --fn-7: #db2777;
+  --fn-8: #65a30d;
+
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 8px 24px -12px rgba(15, 23, 42, 0.18);
+  --shadow-lg: 0 24px 48px -16px rgba(15, 23, 42, 0.28);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b0f17;
+  --surface: #121826;
+  --surface-2: #161d2d;
+  --surface-3: #1d2638;
+  --border: #243047;
+  --border-strong: #34415c;
+  --text: #e7ebf3;
+  --text-2: #c3cad8;
+  --muted: #98a2b6;
+
+  --accent: #8b8df8;
+  --accent-hover: #a5a7fb;
+  --accent-soft: rgba(139, 141, 248, 0.14);
+  --accent-text: #b9bbfc;
+  --on-accent: #0b0f17;
+  --focus: #a5a7fb;
+
+  --success: #34d399;
+  --success-soft: rgba(52, 211, 153, 0.13);
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.13);
+  --warning: #fbbf24;
+  --warning-soft: rgba(251, 191, 36, 0.13);
+
+  --plane-bg: #0f1522;
+  --grid-minor: rgba(226, 232, 240, 0.045);
+  --grid-major: rgba(226, 232, 240, 0.105);
+  --axis: #a9b4c8;
+  --tick-label: #8e99ae;
+  --label-halo: #0f1522;
+
+  --fn-1: #60a5fa;
+  --fn-2: #f87171;
+  --fn-3: #34d399;
+  --fn-4: #a78bfa;
+  --fn-5: #fb923c;
+  --fn-6: #22d3ee;
+  --fn-7: #f472b6;
+  --fn-8: #a3e635;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 10px 28px -14px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 28px 56px -18px rgba(0, 0, 0, 0.7);
+}

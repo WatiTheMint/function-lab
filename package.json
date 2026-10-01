@@ -1,0 +1,11 @@
+{
+  "name": "function-lab",
+  "version": "1.0.0",
+  "description": "Function Lab — интерактивная лаборатория функций и их графиков",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tests/run-tests.js"
+  }
+}
